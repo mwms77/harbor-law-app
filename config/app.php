@@ -37,5 +37,9 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
+
+        // Application Service Providers
+        App\Providers\AppServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,
     ],
 ];
