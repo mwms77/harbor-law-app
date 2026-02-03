@@ -36,6 +36,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+    Route::delete('/users/{user}/force', [AdminUserController::class, 'forceDestroy'])->name('admin.users.force-destroy');
     Route::get('/users/{user}/download-intake', [AdminUserController::class, 'downloadIntake'])->name('admin.users.download-intake');
     Route::post('/users/{user}/upload-plan', [AdminUserController::class, 'uploadPlan'])->name('admin.users.upload-plan');
     Route::delete('/users/{user}/plans/{estatePlan}', [AdminUserController::class, 'deletePlan'])->name('admin.users.delete-plan');

@@ -30,8 +30,13 @@
             </thead>
             <tbody>
                 @forelse($users as $user)
-                <tr>
-                    <td><strong>{{ $user->name }}</strong></td>
+                <tr style="{{ $user->trashed() ? 'opacity: 0.6; background: #f8f9fa;' : '' }}">
+                    <td>
+                        <strong>{{ $user->name }}</strong>
+                        @if($user->trashed())
+                            <span style="color: #dc3545; font-size: 11px; display: block;">(Deleted)</span>
+                        @endif
+                    </td>
                     <td>{{ $user->email }}</td>
                     <td>
                         <span class="badge" style="background: {{ $user->isAdmin() ? '#667eea' : '#28a745' }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
@@ -58,11 +63,28 @@
                             <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">Edit</a>
                             
                             @if($user->id !== auth()->id())
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user? This will delete all their data including intake forms and estate plans.');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
-                            </form>
+                                @if($user->trashed())
+                                    <!-- Hard Delete for soft-deleted users -->
+                                    <form action="{{ route('admin.users.force-destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('PERMANENTLY DELETE this user from the database? This cannot be undone!');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn" style="background: #8b0000; color: white; font-size: 12px; padding: 6px 12px;">Hard Delete</button>
+                                    </form>
+                                @else
+                                    <!-- Soft Delete -->
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this user? (Can be restored later)');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                                    </form>
+                                    
+                                    <!-- Hard Delete -->
+                                    <form action="{{ route('admin.users.force-destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('PERMANENTLY DELETE from database? Cannot be undone!');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn" style="background: #8b0000; color: white; font-size: 12px; padding: 6px 12px;">Hard Delete</button>
+                                    </form>
+                                @endif
                             @endif
                         </div>
                     </td>

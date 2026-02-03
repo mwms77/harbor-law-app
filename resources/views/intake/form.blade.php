@@ -527,33 +527,32 @@
             gap: 10px;
             justify-content: flex-end;
         }
+
+        /* Additional styles for auto-save indicator */
+        .auto-save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .auto-save-indicator.saving {
+            background: #ffc107;
+            display: block;
+        }
+
+        .auto-save-indicator.saved {
+            background: #28a745;
+            display: block;
+        }
     </style>
-
-    /* Additional styles for auto-save indicator */
-    .auto-save-indicator {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 6px;
-        font-size: 14px;
-        display: none;
-        z-index: 9999;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .auto-save-indicator.saving {
-        background: #ffc107;
-        display: block;
-    }
-
-    .auto-save-indicator.saved {
-        background: #28a745;
-        display: block;
-    }
-</style>
 @endpush
 
 <div class="container">

@@ -14,7 +14,8 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::withCount(['intakeSubmission', 'estatePlans'])
+        $users = User::withTrashed()
+            ->withCount(['intakeSubmission', 'estatePlans'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
@@ -88,22 +89,39 @@ class UserController extends Controller
             return back()->with('error', 'You cannot delete your own account!');
         }
 
-        // Delete associated data
-        if ($user->intakeSubmission) {
-            $user->intakeSubmission->delete();
-        }
-
-        foreach ($user->estatePlans as $plan) {
-            if ($plan->file_path && Storage::disk('private')->exists($plan->file_path)) {
-                Storage::disk('private')->delete($plan->file_path);
-            }
-            $plan->delete();
-        }
-
+        // Soft delete - marks as deleted but keeps in database
         $user->delete();
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully!');
+    }
+
+    public function forceDestroy($userId)
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        // Prevent deleting yourself
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account!');
+        }
+
+        // Delete associated data
+        if ($user->intakeSubmission) {
+            $user->intakeSubmission->forceDelete();
+        }
+
+        foreach ($user->estatePlans()->withTrashed()->get() as $plan) {
+            if ($plan->file_path && Storage::disk('private')->exists($plan->file_path)) {
+                Storage::disk('private')->delete($plan->file_path);
+            }
+            $plan->forceDelete();
+        }
+
+        // Hard delete - permanently removes from database
+        $user->forceDelete();
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User permanently deleted from database!');
     }
 
     public function downloadIntake(User $user)
