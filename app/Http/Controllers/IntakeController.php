@@ -242,46 +242,7 @@ class IntakeController extends Controller
         ]);
     }
 
-    public function saveLiabilities(Request $request)
-    {
-        $validated = $request->validate([
-            'liabilities' => 'nullable|array',
-            'liabilities.*.id' => 'nullable|exists:intake_liabilities,id',
-            'liabilities.*.liability_type' => 'required|in:mortgage,home_equity,auto_loan,student_loan,credit_card,personal_loan,business_debt,other',
-            'liabilities.*.description' => 'required|string',
-            'liabilities.*.lender' => 'required|string',
-            'liabilities.*.balance_owed' => 'required|numeric',
-            'liabilities.*.monthly_payment' => 'nullable|numeric',
-            'liabilities.*.account_number' => 'nullable|string',
-            'liabilities.*.notes' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['liabilities'] ?? [])->pluck('id')->filter();
-            $user->intakeLiabilities()->whereNotIn('id', $keepIds)->delete();
-
-            foreach ($validated['liabilities'] ?? [] as $index => $liabilityData) {
-                $liabilityData['sort_order'] = $index;
-                
-                if (isset($liabilityData['id'])) {
-                    IntakeLiability::where('id', $liabilityData['id'])->update($liabilityData);
-                } else {
-                    IntakeLiability::create(array_merge($liabilityData, ['user_id' => $user->id]));
-                }
-            }
-        });
-
-        $user->intakeSubmission->markSectionComplete('liabilities');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Liabilities saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
+    // Save Beneficiaries (Section 6)
     public function saveBeneficiaries(Request $request)
     {
         $validated = $request->validate([
