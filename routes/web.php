@@ -58,7 +58,11 @@ Route::middleware('auth')->group(function () {
     
     // Intake form
     Route::get('/intake', [IntakeController::class, 'show'])->name('intake.show');
-    Route::post('/intake/save', [IntakeController::class, 'save'])->name('intake.save');
+    Route::post('/intake/personal-info', [IntakeController::class, 'savePersonalInfo'])->name('intake.save-personal-info');
+    Route::post('/intake/spouse-info', [IntakeController::class, 'saveSpouseInfo'])->name('intake.save-spouse-info');
+    Route::post('/intake/children', [IntakeController::class, 'saveChildren'])->name('intake.save-children');
+    Route::post('/intake/assets', [IntakeController::class, 'saveAssets'])->name('intake.save-assets');
+    Route::post('/intake/liabilities', [IntakeController::class, 'saveLiabilities'])->name('intake.save-liabilities');
     Route::post('/intake/submit', [IntakeController::class, 'submit'])->name('intake.submit');
     Route::get('/intake/download', [IntakeController::class, 'download'])->name('intake.download');
     
