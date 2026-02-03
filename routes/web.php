@@ -30,7 +30,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     
     // User management
     Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('admin.users.show');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
     Route::get('/users/{user}/download-intake', [AdminUserController::class, 'downloadIntake'])->name('admin.users.download-intake');
     Route::post('/users/{user}/upload-plan', [AdminUserController::class, 'uploadPlan'])->name('admin.users.upload-plan');
     Route::delete('/users/{user}/plans/{estatePlan}', [AdminUserController::class, 'deletePlan'])->name('admin.users.delete-plan');
