@@ -2009,11 +2009,11 @@
     // Load saved data from Laravel backend
     function loadSavedData() {
         const savedData = @json($submission->form_data ?? []);
-        const userData = @json([
-            'firstName' => $user->first_name ?? '',
-            'lastName' => $user->last_name ?? '',
-            'email' => $user->email ?? '',
-        ]);
+        const userData = {
+            firstName: @json($user->first_name ?? ''),
+            lastName: @json($user->last_name ?? ''),
+            email: @json($user->email ?? '')
+        };
         
         // Pre-fill user data if form is empty
         if (Object.keys(savedData).length === 0) {
