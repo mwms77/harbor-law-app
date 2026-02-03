@@ -16,7 +16,7 @@ class IntakeController extends Controller
             'form_data' => [],
         ]);
 
-        return view('intake.form', compact('submission'));
+        return view('intake.form', compact('submission', 'user'));
     }
 
     public function save(Request $request)

@@ -12,14 +12,30 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required autofocus>
+                @error('first_name')
+                    <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                @error('last_name')
+                    <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
+                @enderror
+            </div>
         </div>
 
         <div class="form-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+            @error('email')
+                <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
+            @enderror
         </div>
 
         <div class="form-group">

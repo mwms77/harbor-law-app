@@ -1248,6 +1248,11 @@
         }
 
         // Navigation functions
+        // Modal dialog function
+        function showModal(message) {
+            alert(message);
+        }
+
         function nextSection() {
             if (currentSection < totalSections) {
                 // Validate current section
@@ -2004,7 +2009,24 @@
     // Load saved data from Laravel backend
     function loadSavedData() {
         const savedData = @json($submission->form_data ?? []);
+        const userData = @json([
+            'firstName' => $user->first_name ?? '',
+            'lastName' => $user->last_name ?? '',
+            'email' => $user->email ?? '',
+        ]);
         
+        // Pre-fill user data if form is empty
+        if (Object.keys(savedData).length === 0) {
+            Object.keys(userData).forEach(key => {
+                const field = document.querySelector(`[name="${key}"]`);
+                if (field && userData[key] && !field.value) {
+                    field.value = userData[key];
+                }
+            });
+            console.log('✓ Pre-filled user data from account');
+        }
+        
+        // Load saved form data (overrides prefilled data)
         if (Object.keys(savedData).length > 0) {
             Object.keys(savedData).forEach(key => {
                 const field = document.querySelector(`[name="${key}"]`);

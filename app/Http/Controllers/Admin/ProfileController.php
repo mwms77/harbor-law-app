@@ -20,14 +20,17 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'current_password' => 'required_with:new_password',
             'new_password' => ['nullable', 'confirmed', Password::min(8)],
         ]);
 
-        // Update name and email
-        $user->name = $request->name;
+        // Update name fields
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->name = $request->first_name . ' ' . $request->last_name;
         $user->email = $request->email;
 
         // Update password if provided

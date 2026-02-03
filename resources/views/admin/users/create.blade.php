@@ -16,12 +16,21 @@ use Illuminate\Support\Facades\Auth;
     <form action="{{ route('admin.users.store') }}" method="POST">
         @csrf
         
-        <div class="form-group">
-            <label for="name">Full Name *</label>
-            <input type="text" id="name" name="name" value="{{ old('name') }}" required>
-            @error('name')
-                <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
-            @enderror
+        <div class="form-row">
+            <div class="form-group">
+                <label for="first_name">First Name *</label>
+                <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                @error('first_name')
+                    <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
+                @enderror
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name *</label>
+                <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                @error('last_name')
+                    <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
+                @enderror
+            </div>
         </div>
 
         <div class="form-group">

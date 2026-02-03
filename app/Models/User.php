@@ -13,6 +13,8 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
+        'first_name',
+        'last_name',
         'name',
         'email',
         'password',
@@ -30,6 +32,21 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_active' => 'boolean',
     ];
+
+    // Accessor to get full name
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    // Mutator to set name (for backwards compatibility)
+    public function setNameAttribute($value)
+    {
+        $nameParts = explode(' ', $value, 2);
+        $this->attributes['first_name'] = $nameParts[0] ?? '';
+        $this->attributes['last_name'] = $nameParts[1] ?? '';
+        $this->attributes['name'] = $value;
+    }
 
     // Relationships
     public function intakeSubmission()
