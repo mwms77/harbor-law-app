@@ -1283,164 +1283,6 @@
         </div>
     </div>
 
-    <script>
-        // Global state
-        let currentSection = 1;
-        const totalSections = 9;
-        let formData = {};
-
-        // Section titles for navigation
-        const sectionTitles = [
-            'Client Info',
-            'Children',
-            'Fiduciaries',
-            'Assets',
-            'Liabilities',
-            'Distribution',
-            'Healthcare',
-            'Additional',
-            'Review'
-        ];
-
-        // Initialize form
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if user just submitted
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('submitted') === 'true') {
-                showModal('✅ Thank you! Your estate planning intake form has been successfully submitted to Harbor Law. We will review your information and contact you soon.');
-                // Clean URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            createSectionNav();
-            updateProgress();
-            addChild(); // Add one child by default
-            addTrustee(); // Add primary trustee
-            addExecutor(); // Add primary executor
-            addFinancialAgent(); // Add primary agent
-            addHealthcareAgent(); // Add primary advocate
-            addGuardian(); // Add primary guardian
-            
-            // Show/hide spouse section based on marital status
-            document.querySelector('select[name="maritalStatus"]').addEventListener('change', function() {
-                const spouseSection = document.getElementById('spouseSection');
-                spouseSection.style.display = this.value === 'married' ? 'block' : 'none';
-            });
-
-            // Auto-save to localStorage
-            setInterval(saveToLocalStorage, 30000); // Every 30 seconds
-        });
-
-        // Create section navigation
-        function createSectionNav() {
-            const nav = document.getElementById('sectionNav');
-            sectionTitles.forEach((title, index) => {
-                const navItem = document.createElement('div');
-                navItem.className = 'section-nav-item';
-                if (index === 0) navItem.classList.add('active');
-                navItem.textContent = `${index + 1}. ${title}`;
-                navItem.onclick = () => goToSection(index + 1);
-                nav.appendChild(navItem);
-            });
-        }
-
-        // Navigation functions
-        function nextSection() {
-            if (currentSection < totalSections) {
-                // Validate current section
-                const currentForm = document.querySelector(`.section[data-section="${currentSection}"]`);
-                const requiredFields = currentForm.querySelectorAll('[required]');
-                let isValid = true;
-
-                requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        isValid = false;
-                        field.style.borderColor = '#dc3545';
-                    } else {
-                        field.style.borderColor = '#e0e0e0';
-                    }
-                });
-
-                if (!isValid) {
-                    showModal('Please fill in all required fields marked with *');
-                    return;
-                }
-
-                currentSection++;
-                showSection(currentSection);
-            }
-        }
-
-        function prevSection() {
-            if (currentSection > 1) {
-                currentSection--;
-                showSection(currentSection);
-            }
-        }
-
-        function goToSection(section) {
-            currentSection = section;
-            showSection(currentSection);
-        }
-
-        function showSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            
-            // Show target section
-            const targetSection = document.querySelector(`.section[data-section="${section}"]`);
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-
-            // Update navigation
-            document.querySelectorAll('.section-nav-item').forEach((item, index) => {
-                item.classList.remove('active');
-                if (index + 1 === section) {
-                    item.classList.add('active');
-                }
-                if (index + 1 < section) {
-                    item.classList.add('completed');
-                }
-            });
-
-            // Update progress bar
-            updateProgressBar();
-            
-            // Scroll to top
-            window.scrollTo(0, 0);
-        }
-
-        function updateProgressBar() {
-            const progress = Math.round((currentSection / totalSections) * 100);
-            const progressBar = document.querySelector('.progress-fill');
-            if (progressBar) {
-                progressBar.style.width = progress + '%';
-            }
-        }
-
-        </form>
-
-        <!-- Success Modal -->
-        <div class="modal" id="successModal">
-            <div class="modal-content">
-                <div class="modal-header">Success!</div>
-                <div class="modal-body" id="modalMessage">
-                    Your form has been submitted successfully.
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary" onclick="closeModal()">Close</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Auto-save indicator -->
-        <div class="auto-save-indicator" id="autoSaveIndicator">
-            Saving...
-        </div>
-    </div>
-</div>
-
 @push('scripts')
 <script>
     // Form state - load from database
@@ -1468,6 +1310,83 @@
         setTimeout(() => {
             window.location.href = '{{ route("dashboard") }}';
         }, 1000);
+    }
+
+    function nextSection() {
+        if (currentSection < totalSections) {
+            // Validate current section
+            const currentForm = document.querySelector(`.section[data-section="${currentSection}"]`);
+            const requiredFields = currentForm.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#dc3545';
+                } else {
+                    field.style.borderColor = '#e0e0e0';
+                }
+            });
+
+            if (!isValid) {
+                showModal('Please fill in all required fields marked with *');
+                return;
+            }
+
+            currentSection++;
+            showSection(currentSection);
+        }
+    }
+
+    function prevSection() {
+        if (currentSection > 1) {
+            currentSection--;
+            showSection(currentSection);
+        }
+    }
+
+    function goToSection(section) {
+        currentSection = section;
+        showSection(currentSection);
+    }
+
+    function showSection(section) {
+        // Hide all sections
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        
+        // Show target section
+        const targetSection = document.querySelector(`.section[data-section="${section}"]`);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+
+        // Update navigation - if navigation items exist
+        const navItems = document.querySelectorAll('.section-nav-item');
+        if (navItems.length > 0) {
+            navItems.forEach((item, index) => {
+                item.classList.remove('active');
+                if (index + 1 === section) {
+                    item.classList.add('active');
+                }
+                if (index + 1 < section) {
+                    item.classList.add('completed');
+                }
+            });
+        }
+
+        // Update progress bar
+        updateProgressBar();
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+    }
+
+    function updateProgressBar() {
+        const progress = Math.round((currentSection / totalSections) * 100);
+        const progressBar = document.querySelector('.progress-fill');
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+        }
     }
 
                 targetSection.classList.add('active');
