@@ -302,6 +302,19 @@
             background: #5a6268;
         }
 
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
         .btn-success {
             background: #28a745;
             color: white;
@@ -335,16 +348,44 @@
         .navigation {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             gap: 10px;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 2px solid #e0e0e0;
         }
         
+        .navigation .nav-left {
+            flex: 0 0 auto;
+        }
+        
+        .navigation .nav-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .navigation .nav-right {
+            flex: 0 0 auto;
+        }
+        
         @media (min-width: 768px) {
             .navigation {
                 margin-top: 30px;
                 padding-top: 30px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navigation {
+                flex-direction: column;
+            }
+            
+            .navigation .nav-left,
+            .navigation .nav-center,
+            .navigation .nav-right {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -714,8 +755,15 @@
                     </div>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" disabled>Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" disabled>Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -749,8 +797,15 @@
                     </div>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -793,8 +848,15 @@
                     <button type="button" class="btn btn-add" onclick="addGuardian()">+ Add Alternate Guardian</button>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -859,8 +921,15 @@
                     </div>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -876,8 +945,15 @@
                     <button type="button" class="btn btn-add" onclick="addLiability()">+ Add Debt/Liability</button>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -964,8 +1040,15 @@
                     </div>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1036,8 +1119,15 @@
                     </div>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1139,8 +1229,15 @@
                     </div>
 
                     <div class="navigation">
-                        <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        <div class="nav-left">
+                            <button type="button" class="btn btn-secondary" onclick="prevSection()">Previous</button>
+                        </div>
+                        <div class="nav-center">
+                            <button type="button" class="btn btn-outline" onclick="saveAndExit()">💾 Save & Continue Later</button>
+                        </div>
+                        <div class="nav-right">
+                            <button type="button" class="btn btn-primary" onclick="nextSection()">Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1248,11 +1345,6 @@
         }
 
         // Navigation functions
-        // Modal dialog function
-        function showModal(message) {
-            alert(message);
-        }
-
         function nextSection() {
             if (currentSection < totalSections) {
                 // Validate current section
@@ -1298,6 +1390,34 @@
             // Show target section
             const targetSection = document.querySelector(`.section[data-section="${section}"]`);
             if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Update navigation
+            document.querySelectorAll('.section-nav-item').forEach((item, index) => {
+                item.classList.remove('active');
+                if (index + 1 === section) {
+                    item.classList.add('active');
+                }
+                if (index + 1 < section) {
+                    item.classList.add('completed');
+                }
+            });
+
+            // Update progress bar
+            updateProgressBar();
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function updateProgressBar() {
+            const progress = Math.round((currentSection / totalSections) * 100);
+            const progressBar = document.querySelector('.progress-fill');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+        }
 
         </form>
 
@@ -1324,8 +1444,31 @@
 @push('scripts')
 <script>
     // Form state - load from database
-    let currentSection = {{ $submission->current_section ?? 0 }};
-    const totalSections = 12;
+    let currentSection = {{ $submission->current_section ?? 1 }};
+    const totalSections = 10;
+
+    // Navigation functions
+    function showModal(message) {
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('successModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('successModal').style.display = 'none';
+    }
+
+    function saveAndExit() {
+        // Trigger current section save
+        saveProgress();
+        
+        // Show saving message
+        showModal('Saving your progress...');
+        
+        // Wait for save to complete, then redirect
+        setTimeout(() => {
+            window.location.href = '{{ route("dashboard") }}';
+        }, 1000);
+    }
 
                 targetSection.classList.add('active');
             }
