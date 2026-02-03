@@ -1,4 +1,7 @@
-@php use Illuminate\Support\Facades\Storage; @endphp
+@php 
+use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Auth;
+@endphp
 @extends('layouts.app')
 
 @section('title', 'My Profile')
