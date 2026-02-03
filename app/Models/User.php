@@ -54,6 +54,56 @@ class User extends Authenticatable
         return $this->hasOne(IntakeSubmission::class);
     }
 
+    public function intakePersonalInfo()
+    {
+        return $this->hasOne(IntakePersonalInfo::class);
+    }
+
+    public function intakeSpouseInfo()
+    {
+        return $this->hasOne(IntakeSpouseInfo::class);
+    }
+
+    public function intakeChildren()
+    {
+        return $this->hasMany(IntakeChild::class)->orderBy('sort_order');
+    }
+
+    public function intakeAssets()
+    {
+        return $this->hasMany(IntakeAsset::class)->orderBy('sort_order');
+    }
+
+    public function intakeLiabilities()
+    {
+        return $this->hasMany(IntakeLiability::class)->orderBy('sort_order');
+    }
+
+    public function intakeBeneficiaries()
+    {
+        return $this->hasMany(IntakeBeneficiary::class)->orderBy('sort_order');
+    }
+
+    public function intakeFiduciaries()
+    {
+        return $this->hasMany(IntakeFiduciary::class)->orderBy('sort_order');
+    }
+
+    public function intakeSpecificGifts()
+    {
+        return $this->hasMany(IntakeSpecificGift::class)->orderBy('sort_order');
+    }
+
+    public function intakeHealthcarePreferences()
+    {
+        return $this->hasOne(IntakeHealthcarePreferences::class);
+    }
+
+    public function intakeDistributionPreferences()
+    {
+        return $this->hasOne(IntakeDistributionPreferences::class);
+    }
+
     public function estatePlans()
     {
         return $this->hasMany(EstatePlan::class);

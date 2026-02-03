@@ -2,9 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\IntakeSubmission;
+use App\Models\IntakePersonalInfo;
+use App\Models\IntakeSpouseInfo;
+use App\Models\IntakeChild;
+use App\Models\IntakeAsset;
+use App\Models\IntakeLiability;
+use App\Models\IntakeBeneficiary;
+use App\Models\IntakeFiduciary;
+use App\Models\IntakeSpecificGift;
+use App\Models\IntakeHealthcarePreferences;
+use App\Models\IntakeDistributionPreferences;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class IntakeController extends Controller
 {
@@ -19,15 +31,15 @@ class IntakeController extends Controller
         return view('intake.form', compact('submission', 'user'));
     }
 
+    // Legacy save method for backward compatibility with old JavaScript
     public function save(Request $request)
     {
         $user = Auth::user();
         $submission = $user->intakeSubmission ?? IntakeSubmission::create(['user_id' => $user->id]);
 
+        // Also save to legacy JSON for backward compatibility
         $formData = $submission->form_data ?? [];
         $newData = $request->input('form_data', []);
-        
-        // Merge new data with existing data
         $formData = array_merge($formData, $newData);
 
         $submission->update([
@@ -48,12 +60,10 @@ class IntakeController extends Controller
         $submission = $user->intakeSubmission;
 
         if (!$submission) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No intake form found',
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'No submission found.'], 404);
         }
 
+        // Save final form data
         $formData = $submission->form_data ?? [];
         $newData = $request->input('form_data', []);
         $formData = array_merge($formData, $newData);
@@ -62,13 +72,13 @@ class IntakeController extends Controller
             'form_data' => $formData,
             'is_completed' => true,
             'completed_at' => now(),
+            'submitted_at' => now(),
             'progress_percentage' => 100,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Intake form submitted successfully',
-            'redirect' => route('dashboard'),
+            'message' => 'Intake form submitted successfully!',
         ]);
     }
 
@@ -78,7 +88,7 @@ class IntakeController extends Controller
         $submission = $user->intakeSubmission;
 
         if (!$submission || !$submission->is_completed) {
-            abort(404);
+            return back()->with('error', 'No completed intake form found.');
         }
 
         $data = [
@@ -88,11 +98,13 @@ class IntakeController extends Controller
                 'jurisdiction' => 'Michigan',
                 'userName' => $user->name,
                 'userEmail' => $user->email,
+                'downloadedAt' => now()->toISOString(),
             ],
             'formData' => $submission->form_data,
         ];
 
-        $filename = 'estate_plan_intake_' . $user->id . '_' . now()->format('Y-m-d') . '.json';
+        $filename = 'intake_' . $user->id . '_' . $user->name . '_' . now()->format('Y-m-d') . '.json';
+        $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename);
 
         return response()->json($data)
             ->header('Content-Type', 'application/json')
