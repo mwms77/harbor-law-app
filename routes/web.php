@@ -9,6 +9,7 @@ use App\Http\Controllers\EstatePlanController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 
 // Public routes
 Route::get('/', function () {
@@ -39,6 +40,10 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/settings', [AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::post('/settings/logo', [AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.upload-logo');
     Route::delete('/settings/logo', [AdminSettingsController::class, 'deleteLogo'])->name('admin.settings.delete-logo');
+    
+    // Profile
+    Route::get('/profile', [AdminProfileController::class, 'edit'])->name('admin.profile.edit');
+    Route::post('/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
 });
 
 // User routes
