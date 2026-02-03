@@ -57,19 +57,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Intake form
+    // Intake Form - Simplified
     Route::get('/intake', [IntakeController::class, 'show'])->name('intake.show');
-    Route::post('/intake/personal-info', [IntakeController::class, 'savePersonalInfo'])->name('intake.save-personal-info');
-    Route::post('/intake/spouse-info', [IntakeController::class, 'saveSpouseInfo'])->name('intake.save-spouse-info');
-    Route::post('/intake/children', [IntakeController::class, 'saveChildren'])->name('intake.save-children');
-    Route::post('/intake/fiduciaries', [IntakeController::class, 'saveFiduciaries'])->name('intake.save-fiduciaries');
-    Route::post('/intake/assets', [IntakeController::class, 'saveAssets'])->name('intake.save-assets');
-    Route::post('/intake/liabilities', [IntakeController::class, 'saveLiabilities'])->name('intake.save-liabilities');
-    Route::post('/intake/beneficiaries', [IntakeController::class, 'saveBeneficiaries'])->name('intake.save-beneficiaries');
-    Route::post('/intake/specific-gifts', [IntakeController::class, 'saveSpecificGifts'])->name('intake.save-specific-gifts');
-    Route::post('/intake/healthcare', [IntakeController::class, 'saveHealthcarePreferences'])->name('intake.save-healthcare');
-    Route::post('/intake/distribution', [IntakeController::class, 'saveDistributionPreferences'])->name('intake.save-distribution');
-    Route::post('/intake/submit', [IntakeController::class, 'submit'])->name('intake.submit');
-    Route::get('/intake/download', [IntakeController::class, 'download'])->name('intake.download');
+    Route::post('/intake/save-all', [IntakeController::class, 'saveAll'])->name('intake.save-all');
+    Route::post('/intake/submit-all', [IntakeController::class, 'submitAll'])->name('intake.submit-all');
     
     // Estate plan downloads
     Route::get('/estate-plans/{estatePlan}/download', [EstatePlanController::class, 'download'])->name('estate-plans.download');

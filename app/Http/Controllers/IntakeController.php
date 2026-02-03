@@ -2,486 +2,164 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\IntakeSubmission;
 use App\Models\IntakePersonalInfo;
 use App\Models\IntakeSpouseInfo;
 use App\Models\IntakeChild;
 use App\Models\IntakeAsset;
 use App\Models\IntakeLiability;
-use App\Models\IntakeBeneficiary;
-use App\Models\IntakeFiduciary;
-use App\Models\IntakeSpecificGift;
-use App\Models\IntakeHealthcarePreferences;
-use App\Models\IntakeDistributionPreferences;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class IntakeController extends Controller
 {
+    /**
+     * Display the intake form
+     */
     public function show()
     {
         $user = Auth::user();
         
-        // Ensure submission record exists
-        $submission = $user->intakeSubmission ?? IntakeSubmission::create([
-            'user_id' => $user->id,
-        ]);
+        // Get or create intake submission
+        $submission = IntakeSubmission::firstOrCreate(
+            ['user_id' => $user->id],
+            ['current_section' => 1, 'progress_percentage' => 0]
+        );
 
         // Load all existing data
-        $data = [
-            'personalInfo' => $user->intakePersonalInfo,
-            'spouseInfo' => $user->intakeSpouseInfo,
-            'children' => $user->intakeChildren,
-            'assets' => $user->intakeAssets,
-            'liabilities' => $user->intakeLiabilities,
-            'beneficiaries' => $user->intakeBeneficiaries,
-            'fiduciaries' => $user->intakeFiduciaries,
-            'specificGifts' => $user->intakeSpecificGifts,
-            'healthcarePreferences' => $user->intakeHealthcarePreferences,
-            'distributionPreferences' => $user->intakeDistributionPreferences,
-        ];
+        $personalInfo = $user->intakePersonalInfo;
+        $spouseInfo = $user->intakeSpouseInfo;
+        $children = $user->intakeChildren;
+        $assets = $user->intakeAssets;
+        $liabilities = $user->intakeLiabilities;
 
-        return view('intake.form', compact('submission', 'user', 'data'));
+        return view('intake.form', compact(
+            'user',
+            'submission',
+            'personalInfo',
+            'spouseInfo', 
+            'children',
+            'assets',
+            'liabilities'
+        ));
     }
 
-    public function savePersonalInfo(Request $request)
+    /**
+     * Save all form data at once
+     */
+    public function saveAll(Request $request)
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'preferred_name' => 'nullable|string|max:255',
-            'date_of_birth' => 'required|date',
-            'ssn' => 'nullable|string|max:20',
-            'marital_status' => 'required|in:single,married,divorced,widowed,domestic_partnership',
-            'street_address' => 'required|string',
-            'city' => 'required|string',
-            'county' => 'required|string',
-            'state' => 'required|string',
-            'zip_code' => 'required|string|max:10',
-            'mailing_address' => 'nullable|string',
-            'primary_phone' => 'required|string',
-            'secondary_phone' => 'nullable|string',
-            'email' => 'required|email',
-            'occupation' => 'nullable|string',
-            'us_citizen' => 'boolean',
-            'citizenship_country' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-        
-        IntakePersonalInfo::updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
-
-        $user->intakeSubmission->markSectionComplete('personal_info');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Personal information saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveSpouseInfo(Request $request)
-    {
-        $validated = $request->validate([
-            'spouse_name' => 'nullable|string|max:255',
-            'spouse_dob' => 'nullable|date',
-            'spouse_ssn' => 'nullable|string',
-            'spouse_occupation' => 'nullable|string',
-            'spouse_us_citizen' => 'boolean',
-            'spouse_citizenship_country' => 'nullable|string',
-            'marriage_date' => 'nullable|date',
-            'marriage_location' => 'nullable|string',
-            'prenuptial_agreement' => 'boolean',
-            'previous_marriage' => 'boolean',
-            'previous_marriage_details' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-        
-        IntakeSpouseInfo::updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
-
-        $user->intakeSubmission->markSectionComplete('spouse_info');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Spouse information saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveChildren(Request $request)
-    {
-        $validated = $request->validate([
-            'children' => 'nullable|array',
-            'children.*.id' => 'nullable|exists:intake_children,id',
-            'children.*.full_name' => 'required|string',
-            'children.*.date_of_birth' => 'nullable|date',
-            'children.*.relationship' => 'required|in:biological,adopted,step,other',
-            'children.*.minor' => 'boolean',
-            'children.*.special_needs' => 'boolean',
-            'children.*.special_needs_description' => 'nullable|string',
-            'children.*.current_residence' => 'nullable|string',
-        ]);
-
         $user = Auth::user();
 
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['children'] ?? [])->pluck('id')->filter();
-            $user->intakeChildren()->whereNotIn('id', $keepIds)->delete();
+        try {
+            DB::beginTransaction();
 
-            foreach ($validated['children'] ?? [] as $index => $childData) {
-                $childData['sort_order'] = $index;
+            // Save personal info
+            if (isset($request->data['personal'])) {
+                IntakePersonalInfo::updateOrCreate(
+                    ['user_id' => $user->id],
+                    $request->data['personal']
+                );
+            }
+
+            // Save spouse info
+            if (isset($request->data['spouse'])) {
+                IntakeSpouseInfo::updateOrCreate(
+                    ['user_id' => $user->id],
+                    $request->data['spouse']
+                );
+            }
+
+            // Save children
+            if (isset($request->data['children'])) {
+                // Delete existing children
+                $user->intakeChildren()->delete();
                 
-                if (isset($childData['id'])) {
-                    IntakeChild::where('id', $childData['id'])->update($childData);
-                } else {
+                // Create new ones
+                foreach ($request->data['children'] as $index => $childData) {
+                    $childData['sort_order'] = $index;
                     IntakeChild::create(array_merge($childData, ['user_id' => $user->id]));
                 }
             }
-        });
 
-        $user->intakeSubmission->markSectionComplete('children');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Children information saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveAssets(Request $request)
-    {
-        $validated = $request->validate([
-            'assets' => 'nullable|array',
-            'assets.*.id' => 'nullable|exists:intake_assets,id',
-            'assets.*.asset_type' => 'required|in:real_estate,bank_account,investment,retirement,business,vehicle,personal_property,life_insurance,other',
-            'assets.*.description' => 'required|string',
-            'assets.*.estimated_value' => 'nullable|numeric',
-            'assets.*.ownership' => 'required|in:individual,joint,trust,other',
-            'assets.*.co_owner' => 'nullable|string',
-            'assets.*.account_number' => 'nullable|string',
-            'assets.*.institution' => 'nullable|string',
-            'assets.*.location' => 'nullable|string',
-            'assets.*.primary_residence' => 'boolean',
-            'assets.*.beneficiary_designation' => 'nullable|string',
-            'assets.*.notes' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['assets'] ?? [])->pluck('id')->filter();
-            $user->intakeAssets()->whereNotIn('id', $keepIds)->delete();
-
-            foreach ($validated['assets'] ?? [] as $index => $assetData) {
-                $assetData['sort_order'] = $index;
+            // Save assets
+            if (isset($request->data['assets'])) {
+                // Delete existing assets
+                $user->intakeAssets()->delete();
                 
-                if (isset($assetData['id'])) {
-                    IntakeAsset::where('id', $assetData['id'])->update($assetData);
-                } else {
+                // Create new ones
+                foreach ($request->data['assets'] as $index => $assetData) {
+                    $assetData['sort_order'] = $index;
                     IntakeAsset::create(array_merge($assetData, ['user_id' => $user->id]));
                 }
             }
-        });
 
-        $user->intakeSubmission->markSectionComplete('assets');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Assets saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveLiabilities(Request $request)
-    {
-        $validated = $request->validate([
-            'liabilities' => 'nullable|array',
-            'liabilities.*.id' => 'nullable|exists:intake_liabilities,id',
-            'liabilities.*.liability_type' => 'required|in:mortgage,home_equity,auto_loan,student_loan,credit_card,personal_loan,business_debt,other',
-            'liabilities.*.description' => 'required|string',
-            'liabilities.*.lender' => 'required|string',
-            'liabilities.*.balance_owed' => 'required|numeric',
-            'liabilities.*.monthly_payment' => 'nullable|numeric',
-            'liabilities.*.account_number' => 'nullable|string',
-            'liabilities.*.notes' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['liabilities'] ?? [])->pluck('id')->filter();
-            $user->intakeLiabilities()->whereNotIn('id', $keepIds)->delete();
-
-            foreach ($validated['liabilities'] ?? [] as $index => $liabilityData) {
-                $liabilityData['sort_order'] = $index;
+            // Save liabilities
+            if (isset($request->data['liabilities'])) {
+                // Delete existing liabilities
+                $user->intakeLiabilities()->delete();
                 
-                if (isset($liabilityData['id'])) {
-                    IntakeLiability::where('id', $liabilityData['id'])->update($liabilityData);
-                } else {
+                // Create new ones
+                foreach ($request->data['liabilities'] as $index => $liabilityData) {
+                    $liabilityData['sort_order'] = $index;
                     IntakeLiability::create(array_merge($liabilityData, ['user_id' => $user->id]));
                 }
             }
-        });
 
-        $user->intakeSubmission->markSectionComplete('liabilities');
+            DB::commit();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Liabilities saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
+            return response()->json([
+                'success' => true,
+                'message' => 'Data saved successfully'
+            ]);
 
-    // Save Beneficiaries (Section 6)
-    public function saveBeneficiaries(Request $request)
-    {
-        $validated = $request->validate([
-            'beneficiaries' => 'nullable|array',
-            'beneficiaries.*.id' => 'nullable|exists:intake_beneficiaries,id',
-            'beneficiaries.*.beneficiary_type' => 'required|in:primary,contingent',
-            'beneficiaries.*.full_name' => 'required|string',
-            'beneficiaries.*.relationship' => 'required|string',
-            'beneficiaries.*.address' => 'nullable|string',
-            'beneficiaries.*.phone' => 'nullable|string',
-            'beneficiaries.*.email' => 'nullable|email',
-            'beneficiaries.*.date_of_birth' => 'nullable|date',
-            'beneficiaries.*.share_percentage' => 'nullable|numeric|min:0|max:100',
-            'beneficiaries.*.conditions' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['beneficiaries'] ?? [])->pluck('id')->filter();
-            $user->intakeBeneficiaries()->whereNotIn('id', $keepIds)->delete();
-
-            foreach ($validated['beneficiaries'] ?? [] as $index => $beneficiaryData) {
-                $beneficiaryData['sort_order'] = $index;
-                
-                if (isset($beneficiaryData['id'])) {
-                    IntakeBeneficiary::where('id', $beneficiaryData['id'])->update($beneficiaryData);
-                } else {
-                    IntakeBeneficiary::create(array_merge($beneficiaryData, ['user_id' => $user->id]));
-                }
-            }
-        });
-
-        $user->intakeSubmission->markSectionComplete('beneficiaries');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Beneficiaries saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveFiduciaries(Request $request)
-    {
-        $validated = $request->validate([
-            'fiduciaries' => 'nullable|array',
-            'fiduciaries.*.id' => 'nullable|exists:intake_fiduciaries,id',
-            'fiduciaries.*.role_type' => 'required|in:personal_representative,successor_personal_representative,trustee,successor_trustee,guardian,successor_guardian,healthcare_poa,financial_poa',
-            'fiduciaries.*.full_name' => 'required|string',
-            'fiduciaries.*.relationship' => 'required|string',
-            'fiduciaries.*.address' => 'nullable|string',
-            'fiduciaries.*.phone' => 'nullable|string',
-            'fiduciaries.*.email' => 'nullable|email',
-            'fiduciaries.*.date_of_birth' => 'nullable|date',
-            'fiduciaries.*.professional' => 'boolean',
-            'fiduciaries.*.notes' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['fiduciaries'] ?? [])->pluck('id')->filter();
-            $user->intakeFiduciaries()->whereNotIn('id', $keepIds)->delete();
-
-            foreach ($validated['fiduciaries'] ?? [] as $index => $fiduciaryData) {
-                $fiduciaryData['sort_order'] = $index;
-                
-                if (isset($fiduciaryData['id'])) {
-                    IntakeFiduciary::where('id', $fiduciaryData['id'])->update($fiduciaryData);
-                } else {
-                    IntakeFiduciary::create(array_merge($fiduciaryData, ['user_id' => $user->id]));
-                }
-            }
-        });
-
-        $user->intakeSubmission->markSectionComplete('fiduciaries');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Fiduciaries saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveSpecificGifts(Request $request)
-    {
-        $validated = $request->validate([
-            'gifts' => 'nullable|array',
-            'gifts.*.id' => 'nullable|exists:intake_specific_gifts,id',
-            'gifts.*.item_description' => 'required|string',
-            'gifts.*.recipient_name' => 'required|string',
-            'gifts.*.recipient_relationship' => 'required|string',
-            'gifts.*.conditions' => 'nullable|string',
-            'gifts.*.if_predeceased' => 'required|in:lapse,descendants,alternate',
-            'gifts.*.alternate_recipient' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-
-        DB::transaction(function () use ($user, $validated) {
-            $keepIds = collect($validated['gifts'] ?? [])->pluck('id')->filter();
-            $user->intakeSpecificGifts()->whereNotIn('id', $keepIds)->delete();
-
-            foreach ($validated['gifts'] ?? [] as $index => $giftData) {
-                $giftData['sort_order'] = $index;
-                
-                if (isset($giftData['id'])) {
-                    IntakeSpecificGift::where('id', $giftData['id'])->update($giftData);
-                } else {
-                    IntakeSpecificGift::create(array_merge($giftData, ['user_id' => $user->id]));
-                }
-            }
-        });
-
-        $user->intakeSubmission->markSectionComplete('specific_gifts');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Specific gifts saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveHealthcarePreferences(Request $request)
-    {
-        $validated = $request->validate([
-            'life_sustaining_treatment' => 'nullable|in:maintain,discontinue,comfort_care,undecided',
-            'organ_donation' => 'nullable|boolean',
-            'organ_donation_specifics' => 'nullable|string',
-            'anatomical_gift' => 'nullable|boolean',
-            'anatomical_gift_details' => 'nullable|string',
-            'funeral_preference' => 'nullable|in:burial,cremation,no_preference,other',
-            'funeral_instructions' => 'nullable|string',
-            'funeral_prepaid' => 'nullable|string',
-            'additional_healthcare_wishes' => 'nullable|string',
-            'religious_preferences' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-        
-        IntakeHealthcarePreferences::updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
-
-        $user->intakeSubmission->markSectionComplete('healthcare');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Healthcare preferences saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function saveDistributionPreferences(Request $request)
-    {
-        $validated = $request->validate([
-            'distribution_method' => 'required|in:outright,trust,conditional,combination',
-            'age_restrictions' => 'boolean',
-            'distribution_age' => 'nullable|integer|min:18|max:99',
-            'staged_distribution' => 'nullable|string',
-            'disinherit_anyone' => 'boolean',
-            'disinheritance_details' => 'nullable|string',
-            'equal_distribution' => 'boolean',
-            'unequal_distribution_explanation' => 'nullable|string',
-            'residue_distribution' => 'nullable|string',
-            'charitable_bequests' => 'boolean',
-            'charitable_bequest_details' => 'nullable|string',
-            'special_instructions' => 'nullable|string',
-            'digital_assets_instructions' => 'nullable|string',
-        ]);
-
-        $user = Auth::user();
-        
-        IntakeDistributionPreferences::updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
-
-        $user->intakeSubmission->markSectionComplete('distribution');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Distribution preferences saved',
-            'progress' => $user->intakeSubmission->progress_percentage
-        ]);
-    }
-
-    public function submit(Request $request)
-    {
-        $user = Auth::user();
-        $submission = $user->intakeSubmission;
-
-        if (!$submission) {
-            return response()->json(['success' => false, 'message' => 'No submission found.'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving data: ' . $e->getMessage()
+            ], 500);
         }
-
-        $submission->markAsCompleted();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Intake form submitted successfully!',
-        ]);
     }
 
-    public function download()
+    /**
+     * Submit the complete form
+     */
+    public function submitAll(Request $request)
     {
         $user = Auth::user();
-        $submission = $user->intakeSubmission;
 
-        if (!$submission || !$submission->is_completed) {
-            return back()->with('error', 'No completed intake form found.');
+        try {
+            DB::beginTransaction();
+
+            // Save all data first
+            $this->saveAll($request);
+
+            // Mark submission as complete
+            $submission = IntakeSubmission::where('user_id', $user->id)->first();
+            if ($submission) {
+                $submission->is_completed = true;
+                $submission->completed_at = now();
+                $submission->progress_percentage = 100;
+                $submission->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Form submitted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error submitting form: ' . $e->getMessage()
+            ], 500);
         }
-
-        $data = [
-            'metadata' => [
-                'formVersion' => '2.0',
-                'completedDate' => $submission->completed_at->toISOString(),
-                'jurisdiction' => 'Michigan',
-                'userName' => $user->full_name,
-                'userEmail' => $user->email,
-                'downloadedAt' => now()->toISOString(),
-            ],
-            'personalInfo' => $user->intakePersonalInfo,
-            'spouseInfo' => $user->intakeSpouseInfo,
-            'children' => $user->intakeChildren,
-            'assets' => $user->intakeAssets,
-            'liabilities' => $user->intakeLiabilities,
-            'beneficiaries' => $user->intakeBeneficiaries,
-            'fiduciaries' => $user->intakeFiduciaries,
-            'specificGifts' => $user->intakeSpecificGifts,
-            'healthcarePreferences' => $user->intakeHealthcarePreferences,
-            'distributionPreferences' => $user->intakeDistributionPreferences,
-        ];
-
-        $filename = 'intake_' . $user->id . '_' . str_replace(' ', '_', $user->full_name) . '_' . now()->format('Y-m-d') . '.json';
-
-        return response()->json($data)
-            ->header('Content-Type', 'application/json')
-            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
     }
 }
