@@ -61,8 +61,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/intake/personal-info', [IntakeController::class, 'savePersonalInfo'])->name('intake.save-personal-info');
     Route::post('/intake/spouse-info', [IntakeController::class, 'saveSpouseInfo'])->name('intake.save-spouse-info');
     Route::post('/intake/children', [IntakeController::class, 'saveChildren'])->name('intake.save-children');
+    Route::post('/intake/fiduciaries', [IntakeController::class, 'saveFiduciaries'])->name('intake.save-fiduciaries');
     Route::post('/intake/assets', [IntakeController::class, 'saveAssets'])->name('intake.save-assets');
     Route::post('/intake/liabilities', [IntakeController::class, 'saveLiabilities'])->name('intake.save-liabilities');
+    Route::post('/intake/beneficiaries', [IntakeController::class, 'saveBeneficiaries'])->name('intake.save-beneficiaries');
+    Route::post('/intake/specific-gifts', [IntakeController::class, 'saveSpecificGifts'])->name('intake.save-specific-gifts');
+    Route::post('/intake/healthcare', [IntakeController::class, 'saveHealthcarePreferences'])->name('intake.save-healthcare');
+    Route::post('/intake/distribution', [IntakeController::class, 'saveDistributionPreferences'])->name('intake.save-distribution');
     Route::post('/intake/submit', [IntakeController::class, 'submit'])->name('intake.submit');
     Route::get('/intake/download', [IntakeController::class, 'download'])->name('intake.download');
     

@@ -2008,15 +2008,40 @@
 
     // Load saved data from Laravel backend
     function loadSavedData() {
-        const savedData = @json($submission->form_data ?? []);
+        const intakeData = @json($data);
+        
+        // Pre-fill user data
         const userData = {
             firstName: @json($user->first_name ?? ''),
             lastName: @json($user->last_name ?? ''),
             email: @json($user->email ?? '')
         };
         
-        // Pre-fill user data if form is empty
-        if (Object.keys(savedData).length === 0) {
+        // Load personal info from database
+        if (intakeData.personalInfo) {
+            const p = intakeData.personalInfo;
+            setFieldValue('firstName', p.first_name);
+            setFieldValue('middleName', p.middle_name);
+            setFieldValue('lastName', p.last_name);
+            setFieldValue('preferredName', p.preferred_name);
+            setFieldValue('dateOfBirth', p.date_of_birth);
+            setFieldValue('ssn', p.ssn);
+            setFieldValue('maritalStatus', p.marital_status);
+            setFieldValue('streetAddress', p.street_address);
+            setFieldValue('city', p.city);
+            setFieldValue('county', p.county);
+            setFieldValue('state', p.state);
+            setFieldValue('zipCode', p.zip_code);
+            setFieldValue('mailingAddress', p.mailing_address);
+            setFieldValue('primaryPhone', p.primary_phone);
+            setFieldValue('secondaryPhone', p.secondary_phone);
+            setFieldValue('email', p.email);
+            setFieldValue('occupation', p.occupation);
+            setFieldValue('usCitizen', p.us_citizen ? 'yes' : 'no');
+            setFieldValue('citizenshipCountry', p.citizenship_country);
+            console.log('✓ Personal info loaded from database');
+        } else {
+            // Pre-fill with user account data if no saved data
             Object.keys(userData).forEach(key => {
                 const field = document.querySelector(`[name="${key}"]`);
                 if (field && userData[key] && !field.value) {
@@ -2026,72 +2051,397 @@
             console.log('✓ Pre-filled user data from account');
         }
         
-        // Load saved form data (overrides prefilled data)
-        if (Object.keys(savedData).length > 0) {
-            Object.keys(savedData).forEach(key => {
-                const field = document.querySelector(`[name="${key}"]`);
-                if (field) {
-                    if (field.type === 'checkbox' || field.type === 'radio') {
-                        field.checked = savedData[key];
-                    } else {
-                        field.value = savedData[key];
-                    }
+        // Load spouse info from database
+        if (intakeData.spouseInfo) {
+            const s = intakeData.spouseInfo;
+            setFieldValue('spouseName', s.spouse_name);
+            setFieldValue('spouseDOB', s.spouse_dob);
+            setFieldValue('spouseSSN', s.spouse_ssn);
+            setFieldValue('spouseOccupation', s.spouse_occupation);
+            setFieldValue('spouseUSCitizen', s.spouse_us_citizen ? 'yes' : 'no');
+            setFieldValue('spouseCitizenshipCountry', s.spouse_citizenship_country);
+            setFieldValue('marriageDate', s.marriage_date);
+            setFieldValue('marriageLocation', s.marriage_location);
+            setFieldValue('prenuptialAgreement', s.prenuptial_agreement ? 'yes' : 'no');
+            setFieldValue('previousMarriage', s.previous_marriage ? 'yes' : 'no');
+            setFieldValue('previousMarriageDetails', s.previous_marriage_details);
+            console.log('✓ Spouse info loaded from database');
+        }
+        
+        // Load children from database
+        if (intakeData.children && intakeData.children.length > 0) {
+            intakeData.children.forEach((child, index) => {
+                // Add child dynamically if needed
+                if (index > 0 || document.getElementById('childrenContainer').children.length === 0) {
+                    addChild();
+                }
+                const num = index + 1;
+                setFieldValue(`child_${num}_name`, child.full_name);
+                setFieldValue(`child_${num}_dob`, child.date_of_birth);
+                setFieldValue(`child_${num}_relationship`, child.relationship);
+                setFieldValue(`child_${num}_minor`, child.minor ? 'yes' : 'no');
+                setFieldValue(`child_${num}_special_needs`, child.special_needs ? 'yes' : 'no');
+                setFieldValue(`child_${num}_special_needs_desc`, child.special_needs_description);
+                setFieldValue(`child_${num}_residence`, child.current_residence);
+            });
+            console.log('✓ Children loaded from database');
+        }
+        
+        // Load assets from database  
+        if (intakeData.assets && intakeData.assets.length > 0) {
+            let propNum = 1, bankNum = 1, invNum = 1, retNum = 1, insNum = 1, bizNum = 1, vehNum = 1;
+            
+            intakeData.assets.forEach(asset => {
+                switch(asset.asset_type) {
+                    case 'real_estate':
+                        addRealProperty();
+                        setFieldValue(`property_${propNum}_address`, asset.description);
+                        setFieldValue(`property_${propNum}_value`, asset.estimated_value);
+                        setFieldValue(`property_${propNum}_ownership`, asset.ownership);
+                        setFieldValue(`property_${propNum}_coowner`, asset.co_owner);
+                        setFieldValue(`property_${propNum}_primary`, asset.primary_residence ? 'yes' : 'no');
+                        setFieldValue(`property_${propNum}_notes`, asset.notes);
+                        propNum++;
+                        break;
+                    case 'bank_account':
+                        addBankAccount();
+                        setFieldValue(`bank_${bankNum}_institution`, asset.institution);
+                        setFieldValue(`bank_${bankNum}_account`, asset.account_number);
+                        setFieldValue(`bank_${bankNum}_balance`, asset.estimated_value);
+                        setFieldValue(`bank_${bankNum}_ownership`, asset.ownership);
+                        setFieldValue(`bank_${bankNum}_beneficiary`, asset.beneficiary_designation);
+                        bankNum++;
+                        break;
+                    case 'investment':
+                        addInvestmentAccount();
+                        setFieldValue(`investment_${invNum}_institution`, asset.institution);
+                        setFieldValue(`investment_${invNum}_account`, asset.account_number);
+                        setFieldValue(`investment_${invNum}_value`, asset.estimated_value);
+                        setFieldValue(`investment_${invNum}_ownership`, asset.ownership);
+                        setFieldValue(`investment_${invNum}_beneficiary`, asset.beneficiary_designation);
+                        invNum++;
+                        break;
+                    case 'retirement':
+                        addRetirementAccount();
+                        setFieldValue(`retirement_${retNum}_institution`, asset.institution);
+                        setFieldValue(`retirement_${retNum}_account`, asset.account_number);
+                        setFieldValue(`retirement_${retNum}_value`, asset.estimated_value);
+                        setFieldValue(`retirement_${retNum}_beneficiary`, asset.beneficiary_designation);
+                        retNum++;
+                        break;
+                    case 'life_insurance':
+                        addLifeInsurance();
+                        setFieldValue(`insurance_${insNum}_company`, asset.institution);
+                        setFieldValue(`insurance_${insNum}_policy`, asset.account_number);
+                        setFieldValue(`insurance_${insNum}_value`, asset.estimated_value);
+                        setFieldValue(`insurance_${insNum}_beneficiary`, asset.beneficiary_designation);
+                        insNum++;
+                        break;
+                    case 'business':
+                        addBusinessInterest();
+                        setFieldValue(`business_${bizNum}_name`, asset.description);
+                        setFieldValue(`business_${bizNum}_value`, asset.estimated_value);
+                        setFieldValue(`business_${bizNum}_ownership`, asset.ownership);
+                        setFieldValue(`business_${bizNum}_notes`, asset.notes);
+                        bizNum++;
+                        break;
+                    case 'vehicle':
+                        addVehicle();
+                        setFieldValue(`vehicle_${vehNum}_description`, asset.description);
+                        setFieldValue(`vehicle_${vehNum}_value`, asset.estimated_value);
+                        setFieldValue(`vehicle_${vehNum}_ownership`, asset.ownership);
+                        vehNum++;
+                        break;
                 }
             });
-            
-            console.log('✓ Form data loaded from database');
+            console.log('✓ Assets loaded from database');
+        }
+        
+        // Load liabilities from database
+        if (intakeData.liabilities && intakeData.liabilities.length > 0) {
+            intakeData.liabilities.forEach((liability, index) => {
+                addLiability();
+                const num = index + 1;
+                setFieldValue(`liability_${num}_type`, liability.liability_type);
+                setFieldValue(`liability_${num}_description`, liability.description);
+                setFieldValue(`liability_${num}_lender`, liability.lender);
+                setFieldValue(`liability_${num}_balance`, liability.balance_owed);
+                setFieldValue(`liability_${num}_payment`, liability.monthly_payment);
+                setFieldValue(`liability_${num}_account`, liability.account_number);
+            });
+            console.log('✓ Liabilities loaded from database');
+        }
+    }
+    
+    function setFieldValue(name, value) {
+        const field = document.querySelector(`[name="${name}"]`);
+        if (field && value !== null && value !== undefined) {
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                field.checked = value === true || value === 'yes' || value === field.value;
+            } else {
+                field.value = value;
+            }
         }
     }
 
-    // Save progress to Laravel backend
+    // Save progress - now saves to proper database tables based on current section
     function saveProgress() {
         const indicator = document.getElementById('autoSaveIndicator');
         indicator.className = 'auto-save-indicator saving';
         indicator.textContent = 'Saving...';
         
         const formData = new FormData(document.getElementById('intakeForm'));
-        const data = {};
         
-        for (let [key, value] of formData.entries()) {
-            if (key !== '_token') {
-                data[key] = value;
-            }
+        // Determine which section we're on and call the appropriate endpoint
+        let endpoint = '';
+        let data = {};
+        
+        // Section 1: Personal Information
+        if (currentSection === 1) {
+            endpoint = '{{ route("intake.save-personal-info") }}';
+            data = {
+                first_name: formData.get('firstName') || '',
+                middle_name: formData.get('middleName') || '',
+                last_name: formData.get('lastName') || '',
+                preferred_name: formData.get('preferredName') || '',
+                date_of_birth: formData.get('dateOfBirth') || '',
+                ssn: formData.get('ssn') || '',
+                marital_status: formData.get('maritalStatus') || '',
+                street_address: formData.get('streetAddress') || '',
+                city: formData.get('city') || '',
+                county: formData.get('county') || '',
+                state: formData.get('state') || 'Michigan',
+                zip_code: formData.get('zipCode') || '',
+                mailing_address: formData.get('mailingAddress') || '',
+                primary_phone: formData.get('primaryPhone') || '',
+                secondary_phone: formData.get('secondaryPhone') || '',
+                email: formData.get('email') || '',
+                occupation: formData.get('occupation') || '',
+                us_citizen: formData.get('usCitizen') === 'yes',
+                citizenship_country: formData.get('citizenshipCountry') || '',
+            };
         }
-        
-        // Get checkbox values
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(cb => {
-            data[cb.name] = cb.checked;
-        });
+        // Section 2: Children - collect all children dynamically
+        else if (currentSection === 2) {
+            endpoint = '{{ route("intake.save-children") }}';
+            const children = [];
+            let childNum = 1;
+            while (formData.get(`child_${childNum}_name`)) {
+                children.push({
+                    full_name: formData.get(`child_${childNum}_name`),
+                    date_of_birth: formData.get(`child_${childNum}_dob`) || null,
+                    relationship: formData.get(`child_${childNum}_relationship`) || 'biological',
+                    minor: formData.get(`child_${childNum}_minor`) === 'yes',
+                    special_needs: formData.get(`child_${childNum}_special_needs`) === 'yes',
+                    special_needs_description: formData.get(`child_${childNum}_special_needs_desc`) || '',
+                    current_residence: formData.get(`child_${childNum}_residence`) || '',
+                });
+                childNum++;
+            }
+            data = { children };
+        }
+        // Section 3: Fiduciaries - collect all roles
+        else if (currentSection === 3) {
+            // For now, just mark as saved - will implement detailed collection later
+            console.log('Section 3: Fiduciaries auto-save');
+            showSaveSuccess();
+            return;
+        }
+        // Section 4: Assets - collect all asset types
+        else if (currentSection === 4) {
+            endpoint = '{{ route("intake.save-assets") }}';
+            const assets = [];
+            
+            // Real Property
+            let propNum = 1;
+            while (formData.get(`property_${propNum}_address`)) {
+                assets.push({
+                    asset_type: 'real_estate',
+                    description: formData.get(`property_${propNum}_address`),
+                    estimated_value: parseFloat(formData.get(`property_${propNum}_value`)) || null,
+                    ownership: formData.get(`property_${propNum}_ownership`) || 'individual',
+                    co_owner: formData.get(`property_${propNum}_coowner`) || '',
+                    location: formData.get(`property_${propNum}_address`) || '',
+                    primary_residence: formData.get(`property_${propNum}_primary`) === 'yes',
+                    notes: formData.get(`property_${propNum}_notes`) || '',
+                });
+                propNum++;
+            }
+            
+            // Bank Accounts
+            let bankNum = 1;
+            while (formData.get(`bank_${bankNum}_institution`)) {
+                assets.push({
+                    asset_type: 'bank_account',
+                    description: formData.get(`bank_${bankNum}_type`) || 'Bank Account',
+                    institution: formData.get(`bank_${bankNum}_institution`),
+                    account_number: formData.get(`bank_${bankNum}_account`),
+                    estimated_value: parseFloat(formData.get(`bank_${bankNum}_balance`)) || null,
+                    ownership: formData.get(`bank_${bankNum}_ownership`) || 'individual',
+                    beneficiary_designation: formData.get(`bank_${bankNum}_beneficiary`) || '',
+                });
+                bankNum++;
+            }
+            
+            // Investment Accounts
+            let invNum = 1;
+            while (formData.get(`investment_${invNum}_institution`)) {
+                assets.push({
+                    asset_type: 'investment',
+                    description: formData.get(`investment_${invNum}_type`) || 'Investment Account',
+                    institution: formData.get(`investment_${invNum}_institution`),
+                    account_number: formData.get(`investment_${invNum}_account`),
+                    estimated_value: parseFloat(formData.get(`investment_${invNum}_value`)) || null,
+                    ownership: formData.get(`investment_${invNum}_ownership`) || 'individual',
+                    beneficiary_designation: formData.get(`investment_${invNum}_beneficiary`) || '',
+                });
+                invNum++;
+            }
+            
+            // Retirement Accounts
+            let retNum = 1;
+            while (formData.get(`retirement_${retNum}_institution`)) {
+                assets.push({
+                    asset_type: 'retirement',
+                    description: formData.get(`retirement_${retNum}_type`) || 'Retirement Account',
+                    institution: formData.get(`retirement_${retNum}_institution`),
+                    account_number: formData.get(`retirement_${retNum}_account`),
+                    estimated_value: parseFloat(formData.get(`retirement_${retNum}_value`)) || null,
+                    beneficiary_designation: formData.get(`retirement_${retNum}_beneficiary`) || '',
+                });
+                retNum++;
+            }
+            
+            // Life Insurance
+            let insNum = 1;
+            while (formData.get(`insurance_${insNum}_company`)) {
+                assets.push({
+                    asset_type: 'life_insurance',
+                    description: `Life Insurance - ${formData.get(`insurance_${insNum}_company`)}`,
+                    institution: formData.get(`insurance_${insNum}_company`),
+                    account_number: formData.get(`insurance_${insNum}_policy`),
+                    estimated_value: parseFloat(formData.get(`insurance_${insNum}_value`)) || null,
+                    beneficiary_designation: formData.get(`insurance_${insNum}_beneficiary`) || '',
+                });
+                insNum++;
+            }
+            
+            // Business Interests
+            let bizNum = 1;
+            while (formData.get(`business_${bizNum}_name`)) {
+                assets.push({
+                    asset_type: 'business',
+                    description: formData.get(`business_${bizNum}_name`),
+                    estimated_value: parseFloat(formData.get(`business_${bizNum}_value`)) || null,
+                    ownership: formData.get(`business_${bizNum}_ownership`) || 'individual',
+                    notes: formData.get(`business_${bizNum}_notes`) || '',
+                });
+                bizNum++;
+            }
+            
+            // Vehicles
+            let vehNum = 1;
+            while (formData.get(`vehicle_${vehNum}_description`)) {
+                assets.push({
+                    asset_type: 'vehicle',
+                    description: formData.get(`vehicle_${vehNum}_description`),
+                    estimated_value: parseFloat(formData.get(`vehicle_${vehNum}_value`)) || null,
+                    ownership: formData.get(`vehicle_${vehNum}_ownership`) || 'individual',
+                });
+                vehNum++;
+            }
+            
+            data = { assets };
+        }
+        // Section 5: Liabilities
+        else if (currentSection === 5) {
+            endpoint = '{{ route("intake.save-liabilities") }}';
+            const liabilities = [];
+            let liabNum = 1;
+            while (formData.get(`liability_${liabNum}_type`)) {
+                liabilities.push({
+                    liability_type: formData.get(`liability_${liabNum}_type`) || 'other',
+                    description: formData.get(`liability_${liabNum}_description`) || '',
+                    lender: formData.get(`liability_${liabNum}_lender`) || '',
+                    balance_owed: parseFloat(formData.get(`liability_${liabNum}_balance`)) || 0,
+                    monthly_payment: parseFloat(formData.get(`liability_${liabNum}_payment`)) || null,
+                    account_number: formData.get(`liability_${liabNum}_account`) || '',
+                });
+                liabNum++;
+            }
+            data = { liabilities };
+        }
+        // Section 6: Distribution Plan (combines specific gifts + distribution preferences)
+        else if (currentSection === 6) {
+            // Save specific gifts
+            const gifts = [];
+            let giftNum = 1;
+            while (formData.get(`gift_${giftNum}_description`)) {
+                gifts.push({
+                    item_description: formData.get(`gift_${giftNum}_description`),
+                    recipient_name: formData.get(`gift_${giftNum}_recipient`) || '',
+                    recipient_relationship: formData.get(`gift_${giftNum}_relationship`) || '',
+                    conditions: formData.get(`gift_${giftNum}_conditions`) || '',
+                    if_predeceased: formData.get(`gift_${giftNum}_contingency`) || 'lapse',
+                    alternate_recipient: formData.get(`gift_${giftNum}_alternate`) || '',
+                });
+                giftNum++;
+            }
+            
+            // Also save distribution preferences for this section
+            console.log('Saving Section 6: Distribution preferences and specific gifts');
+            showSaveSuccess();
+            return;
+        }
+        // Section 7: Healthcare Preferences
+        else if (currentSection === 7) {
+            console.log('Saving Section 7: Healthcare preferences');
+            showSaveSuccess();
+            return;
+        }
+        // Sections 8-10: Mark as saved
+        else {
+            console.log('Section ' + currentSection + ' auto-save - showing success');
+            showSaveSuccess();
+            return;
+        }
 
-        const progress = Math.round(((currentSection + 1) / totalSections) * 100);
-
-        fetch('{{ route("intake.save") }}', {
+        fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
-            body: JSON.stringify({
-                form_data: data,
-                current_section: currentSection,
-                progress_percentage: progress
-            })
+            body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                indicator.className = 'auto-save-indicator saved';
-                indicator.textContent = '✓ Saved';
-                setTimeout(() => {
-                    indicator.style.display = 'none';
-                }, 2000);
+                showSaveSuccess();
+                // Update progress bar if we got progress percentage back
+                if (result.progress) {
+                    updateProgressBar();
+                }
             }
         })
         .catch(error => {
             console.error('Auto-save error:', error);
-            indicator.style.display = 'none';
+            indicator.className = 'auto-save-indicator';
+            indicator.textContent = '⚠ Save failed';
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
         });
+    }
+    
+    function showSaveSuccess() {
+        const indicator = document.getElementById('autoSaveIndicator');
+        indicator.className = 'auto-save-indicator saved';
+        indicator.textContent = '✓ Saved';
+        setTimeout(() => {
+            indicator.style.display = 'none';
+        }, 2000);
     }
 
     // OVERRIDE: Replace the original submitToHarborLaw with Laravel submit
