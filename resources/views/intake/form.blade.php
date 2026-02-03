@@ -1389,39 +1389,13 @@
         }
     }
 
-                targetSection.classList.add('active');
-            }
+    function initializeSectionNavigation() {
+        // Show the first section by default
+        showSection(currentSection || 1);
+    }
 
-            // Update navigation
-            document.querySelectorAll('.section-nav-item').forEach((item, index) => {
-                item.classList.remove('active');
-                if (index + 1 === section) {
-                    item.classList.add('active');
-                }
-                if (index + 1 < section) {
-                    item.classList.add('completed');
-                }
-            });
-
-            // Update progress bar
-            updateProgress();
-
-            // Scroll to top
-            window.scrollTo(0, 0);
-
-            // Generate review if on last section
-            if (section === totalSections) {
-                generateReview();
-            }
-        }
-
-        function updateProgress() {
-            const progress = (currentSection / totalSections) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-        }
-
-        // Dynamic field functions
-        function addChild() {
+    // Dynamic field functions
+    function addChild() {
             const container = document.getElementById('childrenContainer');
             const childNum = container.children.length + 1;
             
