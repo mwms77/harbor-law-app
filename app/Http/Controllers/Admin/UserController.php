@@ -192,14 +192,19 @@ class UserController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            // Send email notification to user (async, don't block upload)
-            try {
-                \Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
-                $emailStatus = ' User has been notified by email.';
-            } catch (\Exception $e) {
-                // Log error but don't fail the upload
-                \Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
-                $emailStatus = ' (Note: Email notification could not be sent.)';
+            // Send email notification to user (optional - don't block upload if it fails)
+            $emailStatus = '';
+            if (class_exists('\App\Mail\EstatePlanUploaded')) {
+                try {
+                    \Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
+                    $emailStatus = ' User has been notified by email.';
+                } catch (\Exception $e) {
+                    // Log error but don't fail the upload
+                    \Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
+                    $emailStatus = ' (Note: Email notification could not be sent - ' . $e->getMessage() . ')';
+                }
+            } else {
+                $emailStatus = ' (Email notifications not configured yet.)';
             }
 
             return back()->with('success', 'Estate plan uploaded successfully.' . $emailStatus);
