@@ -130,13 +130,71 @@ class IntakeController extends Controller
             // Update submission progress
             $submission = IntakeSubmission::where('user_id', $user->id)->first();
             if ($submission) {
-                // Calculate progress based on current step (from request)
                 $currentStep = $request->input('current_step', 1);
+                
+                // Calculate progress based on completed sections (sections with data)
+                $completedSections = 0;
                 $totalSteps = 8;
-                $progressPercentage = round(($currentStep / $totalSteps) * 100);
+                
+                // Step 1: Personal Info - required fields filled
+                $personalInfo = $user->intakePersonalInfo;
+                if ($personalInfo && 
+                    !empty($personalInfo->first_name) && 
+                    !empty($personalInfo->last_name) && 
+                    !empty($personalInfo->email)) {
+                    $completedSections++;
+                }
+                
+                // Step 2: Spouse Info - either not married OR has spouse data
+                if ($personalInfo) {
+                    if ($personalInfo->marital_status === 'married') {
+                        $spouseInfo = $user->intakeSpouseInfo;
+                        if ($spouseInfo && !empty($spouseInfo->spouse_name)) {
+                            $completedSections++;
+                        }
+                    } else {
+                        // Not married, so spouse section is "complete" by default
+                        $completedSections++;
+                    }
+                }
+                
+                // Step 3: Children - has at least one child OR explicitly skipped (count as complete if user has been past this step)
+                if ($currentStep > 3 || $user->intakeChildren()->count() > 0) {
+                    $completedSections++;
+                }
+                
+                // Step 4: Assets - has at least one asset OR user has been past this step
+                if ($currentStep > 4 || $user->intakeAssets()->count() > 0) {
+                    $completedSections++;
+                }
+                
+                // Step 5: Liabilities - has at least one liability OR user has been past this step
+                if ($currentStep > 5 || $user->intakeLiabilities()->count() > 0) {
+                    $completedSections++;
+                }
+                
+                // Step 6: Fiduciaries - has at least one fiduciary OR user has been past this step
+                if ($currentStep > 6 || $user->intakeFiduciaries()->count() > 0) {
+                    $completedSections++;
+                }
+                
+                // Step 7: Pets - has pet data OR user has been past this step
+                if ($currentStep > 7 || !empty($submission->notes)) {
+                    $completedSections++;
+                }
+                
+                // Step 8: Review - only complete if user has submitted
+                if ($submission->is_completed) {
+                    $completedSections++;
+                }
+                
+                $progressPercentage = round(($completedSections / $totalSteps) * 100);
+                
+                // Track the highest step user has reached
+                $highestStep = max($submission->current_section ?? 1, $currentStep);
                 
                 $submission->update([
-                    'current_section' => $currentStep,
+                    'current_section' => $highestStep,
                     'progress_percentage' => $progressPercentage,
                     'notes' => isset($request->data['pets']) ? json_encode($request->data['pets']) : $submission->notes
                 ]);
