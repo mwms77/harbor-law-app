@@ -66,7 +66,7 @@
         
         <div class="form-group">
             <label for="status">Document Status</label>
-            <select id="status" name="status" required>
+            <select id="status" name="status">
                 <option value="draft">Draft</option>
                 <option value="final" selected>Final</option>
                 <option value="executed">Executed</option>

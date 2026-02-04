@@ -161,40 +161,55 @@ class UserController extends Controller
 
     public function uploadPlan(Request $request, User $user)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:pdf|max:10240',
-            'status' => 'required|in:draft,final,executed',
-            'executed_at' => 'nullable|date',
-            'notes' => 'nullable|string|max:1000',
-        ]);
-
-        $file = $request->file('file');
-        $originalFilename = $file->getClientOriginalName();
-        $filename = $user->id . '_' . time() . '_' . $originalFilename;
-        $path = $file->storeAs('estate-plans', $filename, 'private');
-
-        $estatePlan = EstatePlan::create([
-            'user_id' => $user->id,
-            'uploaded_by' => auth()->id(),
-            'filename' => $filename,
-            'original_filename' => $originalFilename,
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-            'status' => $request->status,
-            'executed_at' => $request->executed_at,
-            'notes' => $request->notes,
-        ]);
-
-        // Send email notification to user
         try {
-            \Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
-        } catch (\Exception $e) {
-            // Log error but don't fail the upload
-            \Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
-        }
+            $request->validate([
+                'file' => 'required|file|mimes:pdf|max:10240',
+                'status' => 'nullable|in:draft,final,executed',
+                'executed_at' => 'nullable|date',
+                'notes' => 'nullable|string|max:1000',
+            ]);
 
-        return back()->with('success', 'Estate plan uploaded successfully and user has been notified by email.');
+            $file = $request->file('file');
+            
+            if (!$file) {
+                return back()->with('error', 'No file was uploaded. Please select a PDF file.');
+            }
+
+            $originalFilename = $file->getClientOriginalName();
+            $filename = $user->id . '_' . time() . '_' . $originalFilename;
+            $path = $file->storeAs('estate-plans', $filename, 'private');
+
+            $estatePlan = EstatePlan::create([
+                'user_id' => $user->id,
+                'uploaded_by' => auth()->id(),
+                'filename' => $filename,
+                'original_filename' => $originalFilename,
+                'file_path' => $path,
+                'file_size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'status' => $request->status ?? 'final',
+                'executed_at' => $request->executed_at,
+                'notes' => $request->notes,
+            ]);
+
+            // Send email notification to user (async, don't block upload)
+            try {
+                \Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
+                $emailStatus = ' User has been notified by email.';
+            } catch (\Exception $e) {
+                // Log error but don't fail the upload
+                \Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
+                $emailStatus = ' (Note: Email notification could not be sent.)';
+            }
+
+            return back()->with('success', 'Estate plan uploaded successfully.' . $emailStatus);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            \Log::error('Estate plan upload failed: ' . $e->getMessage());
+            return back()->with('error', 'Upload failed: ' . $e->getMessage());
+        }
     }
 
     public function deletePlan(EstatePlan $estatePlan)
