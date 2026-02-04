@@ -65,6 +65,21 @@
         </div>
         
         <div class="form-group">
+            <label for="status">Document Status</label>
+            <select id="status" name="status" required>
+                <option value="draft">Draft</option>
+                <option value="final" selected>Final</option>
+                <option value="executed">Executed</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="executed_at">Executed Date (Optional)</label>
+            <input type="date" id="executed_at" name="executed_at">
+            <small style="color: #6c757d; display: block; margin-top: 5px;">Only applicable if status is "Executed"</small>
+        </div>
+        
+        <div class="form-group">
             <label for="notes">Notes (Optional)</label>
             <textarea id="notes" name="notes" rows="3" placeholder="Add any notes about this document..."></textarea>
         </div>
@@ -77,6 +92,8 @@
             <thead>
                 <tr>
                     <th>Document</th>
+                    <th>Status</th>
+                    <th>Executed Date</th>
                     <th>Size</th>
                     <th>Uploaded</th>
                     <th>Notes</th>
@@ -87,10 +104,30 @@
                 @foreach($user->estatePlans as $plan)
                 <tr>
                     <td>{{ $plan->original_filename }}</td>
+                    <td>
+                        <form action="{{ route('admin.estate-plans.update-status', $plan) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <select name="status" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                                <option value="draft" {{ $plan->status === 'draft' ? 'selected' : '' }}>Draft</option>
+                                <option value="final" {{ $plan->status === 'final' ? 'selected' : '' }}>Final</option>
+                                <option value="executed" {{ $plan->status === 'executed' ? 'selected' : '' }}>Executed</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{{ route('admin.estate-plans.update-status', $plan) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <input type="hidden" name="status" value="{{ $plan->status }}">
+                            <input type="date" name="executed_at" value="{{ $plan->executed_at?->format('Y-m-d') }}" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; width: 140px;">
+                        </form>
+                    </td>
                     <td>{{ $plan->getFileSizeFormatted() }}</td>
                     <td>{{ $plan->created_at->format('M j, Y') }}</td>
                     <td>{{ $plan->notes ?? '-' }}</td>
                     <td>
+                        <a href="{{ route('estate-plans.view', $plan) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" target="_blank">
+                            View
+                        </a>
                         <a href="{{ route('estate-plans.download', $plan) }}" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;">
                             Download
                         </a>

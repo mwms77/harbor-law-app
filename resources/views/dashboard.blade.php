@@ -55,6 +55,7 @@
             <thead>
                 <tr>
                     <th>Document Name</th>
+                    <th>Status</th>
                     <th>Uploaded Date</th>
                     <th>Size</th>
                     <th>Actions</th>
@@ -64,9 +65,18 @@
                 @foreach($estatePlans as $plan)
                 <tr>
                     <td>{{ $plan->original_filename }}</td>
-                    <td>{{ $plan->created_at->format('M j, Y') }}</td>
+                    <td>{!! $plan->getStatusBadge() !!}</td>
+                    <td>
+                        {{ $plan->created_at->format('M j, Y') }}
+                        @if($plan->executed_at)
+                            <br><small style="color: #28a745;">✓ Executed: {{ $plan->executed_at->format('M j, Y') }}</small>
+                        @endif
+                    </td>
                     <td>{{ $plan->getFileSizeFormatted() }}</td>
                     <td>
+                        <a href="{{ route('estate-plans.view', $plan) }}" class="btn btn-primary" style="padding: 8px 16px;" target="_blank">
+                            View PDF
+                        </a>
                         <a href="{{ route('estate-plans.download', $plan) }}" class="btn btn-success" style="padding: 8px 16px;">
                             Download
                         </a>

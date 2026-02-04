@@ -44,6 +44,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/users/{user}/download-intake', [AdminUserController::class, 'downloadIntake'])->name('admin.users.download-intake');
     Route::post('/users/{user}/upload-plan', [AdminUserController::class, 'uploadPlan'])->name('admin.users.upload-plan');
     Route::delete('/users/{user}/plans/{estatePlan}', [AdminUserController::class, 'deletePlan'])->name('admin.users.delete-plan');
+    Route::post('/estate-plans/{estatePlan}/update-status', [AdminUserController::class, 'updatePlanStatus'])->name('admin.estate-plans.update-status');
     Route::post('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     
     // Settings
@@ -68,4 +69,5 @@ Route::middleware('auth')->group(function () {
     
     // Estate plan downloads
     Route::get('/estate-plans/{estatePlan}/download', [EstatePlanController::class, 'download'])->name('estate-plans.download');
+    Route::get('/estate-plans/{estatePlan}/view', [EstatePlanController::class, 'view'])->name('estate-plans.view');
 });

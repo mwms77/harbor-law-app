@@ -49,8 +49,14 @@
                         </span>
                     </td>
                     <td>
-                        @if($user->intakeSubmission && $user->intakeSubmission->is_completed)
-                            <span style="color: #28a745;">✓ Completed</span>
+                        @if($user->intakeSubmission)
+                            @if($user->intakeSubmission->is_completed)
+                                <span style="color: #28a745; font-weight: 600;">✓ Completed</span>
+                            @else
+                                <span style="color: #667eea; font-weight: 600;">
+                                    {{ $user->intakeSubmission->progress_percentage }}% Complete
+                                </span>
+                            @endif
                         @else
                             <span style="color: #6c757d;">Not Started</span>
                         @endif

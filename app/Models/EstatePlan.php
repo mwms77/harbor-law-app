@@ -20,10 +20,13 @@ class EstatePlan extends Model
         'file_size',
         'mime_type',
         'notes',
+        'status',
+        'executed_at',
     ];
 
     protected $casts = [
         'file_size' => 'integer',
+        'executed_at' => 'date',
     ];
 
     public function user()
@@ -51,6 +54,26 @@ class EstatePlan extends Model
         }
         
         return round($bytes, 2) . ' ' . $units[$i];
+    }
+
+    public function getStatusBadge()
+    {
+        $colors = [
+            'draft' => '#6c757d',    // Gray
+            'final' => '#667eea',    // Purple
+            'executed' => '#28a745', // Green
+        ];
+        
+        $labels = [
+            'draft' => 'Draft',
+            'final' => 'Final',
+            'executed' => 'Executed',
+        ];
+        
+        $color = $colors[$this->status] ?? '#6c757d';
+        $label = $labels[$this->status] ?? 'Unknown';
+        
+        return "<span style='background: {$color}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;'>{$label}</span>";
     }
 
     protected static function boot()

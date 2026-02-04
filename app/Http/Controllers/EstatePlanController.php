@@ -27,4 +27,26 @@ class EstatePlanController extends Controller
             $estatePlan->original_filename
         );
     }
+
+    public function view(EstatePlan $estatePlan)
+    {
+        $user = Auth::user();
+
+        // Check authorization
+        if ($user->id !== $estatePlan->user_id && !$user->isAdmin()) {
+            abort(403);
+        }
+
+        if (!Storage::disk('private')->exists($estatePlan->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        return response()->file(
+            Storage::disk('private')->path($estatePlan->file_path),
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $estatePlan->original_filename . '"'
+            ]
+        );
+    }
 }

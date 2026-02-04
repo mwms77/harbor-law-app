@@ -163,6 +163,8 @@ class UserController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:pdf|max:10240',
+            'status' => 'required|in:draft,final,executed',
+            'executed_at' => 'nullable|date',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -179,10 +181,20 @@ class UserController extends Controller
             'file_path' => $path,
             'file_size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
+            'status' => $request->status,
+            'executed_at' => $request->executed_at,
             'notes' => $request->notes,
         ]);
 
-        return back()->with('success', 'Estate plan uploaded successfully.');
+        // Send email notification to user
+        try {
+            \Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
+        } catch (\Exception $e) {
+            // Log error but don't fail the upload
+            \Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Estate plan uploaded successfully and user has been notified by email.');
     }
 
     public function deletePlan(EstatePlan $estatePlan)
@@ -190,6 +202,21 @@ class UserController extends Controller
         $estatePlan->delete();
         
         return back()->with('success', 'Estate plan deleted successfully.');
+    }
+
+    public function updatePlanStatus(Request $request, EstatePlan $estatePlan)
+    {
+        $request->validate([
+            'status' => 'required|in:draft,final,executed',
+            'executed_at' => 'nullable|date',
+        ]);
+
+        $estatePlan->update([
+            'status' => $request->status,
+            'executed_at' => $request->executed_at,
+        ]);
+
+        return back()->with('success', 'Document status updated successfully.');
     }
 
     public function toggleStatus(User $user)
