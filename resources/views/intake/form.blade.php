@@ -105,6 +105,17 @@
                             <input type="text" x-model="formData.spouse.spouse_occupation">
                         </div>
                     </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Marriage Date</label>
+                            <input type="date" x-model="formData.spouse.marriage_date">
+                        </div>
+                        <div class="form-group">
+                            <label>Marriage Location</label>
+                            <input type="text" x-model="formData.spouse.marriage_location">
+                        </div>
+                    </div>
                 </div>
             </template>
 
@@ -265,33 +276,383 @@
             </div>
         </div>
 
-        <!-- Step 6: Review -->
+        <!-- Step 6: Fiduciaries -->
         <div x-show="step === 6" class="step-content">
-            <h2>Review & Submit</h2>
+            <h2>Fiduciaries & Decision Makers</h2>
             
-            <div class="review-box">
-                <h3>Personal Information</h3>
-                <p><strong>Name:</strong> <span x-text="`${formData.personal.first_name} ${formData.personal.last_name}`"></span></p>
-                <p><strong>Email:</strong> <span x-text="formData.personal.email"></span></p>
-                <p><strong>Phone:</strong> <span x-text="formData.personal.primary_phone"></span></p>
+            <p class="help-text">Who will manage your affairs and make decisions on your behalf?</p>
+
+            <!-- Trustees -->
+            <h3>Trustees</h3>
+            <p class="help-text">Who will manage your trust if you become incapacitated or pass away?</p>
+            
+            <template x-for="(trustee, index) in formData.fiduciaries.trustees" :key="'trustee-' + index">
+                <div class="repeater-item">
+                    <div class="repeater-header">
+                        <span><span x-text="index === 0 ? 'Primary' : 'Successor'"></span> Trustee</span>
+                        <button type="button" @click="removeFiduciary('trustees', index)" class="btn-remove" x-show="index > 0">Remove</button>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" x-model="trustee.full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship</label>
+                            <input type="text" x-model="trustee.relationship" placeholder="e.g., Spouse, Child, Friend">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" x-model="trustee.phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" x-model="trustee.email">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <button type="button" @click="addFiduciary('trustees')" class="btn-add">+ Add Successor Trustee</button>
+
+            <!-- Personal Representative (Executor) -->
+            <h3 style="margin-top: 30px;">Personal Representative (Executor)</h3>
+            <p class="help-text">Who will handle your estate and ensure your will is carried out?</p>
+            
+            <template x-for="(executor, index) in formData.fiduciaries.executors" :key="'executor-' + index">
+                <div class="repeater-item">
+                    <div class="repeater-header">
+                        <span><span x-text="index === 0 ? 'Primary' : 'Successor'"></span> Personal Representative</span>
+                        <button type="button" @click="removeFiduciary('executors', index)" class="btn-remove" x-show="index > 0">Remove</button>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" x-model="executor.full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship</label>
+                            <input type="text" x-model="executor.relationship">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" x-model="executor.phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" x-model="executor.email">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <button type="button" @click="addFiduciary('executors')" class="btn-add">+ Add Successor Personal Representative</button>
+
+            <!-- Guardians (if minor children) -->
+            <template x-if="hasMinorChildren">
+                <div>
+                    <h3 style="margin-top: 30px;">Guardian for Minor Children</h3>
+                    <p class="help-text">Who will care for your minor children if you pass away?</p>
+                    
+                    <template x-for="(guardian, index) in formData.fiduciaries.guardians" :key="'guardian-' + index">
+                        <div class="repeater-item">
+                            <div class="repeater-header">
+                                <span><span x-text="index === 0 ? 'Primary' : 'Successor'"></span> Guardian</span>
+                                <button type="button" @click="removeFiduciary('guardians', index)" class="btn-remove" x-show="index > 0">Remove</button>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Full Name *</label>
+                                    <input type="text" x-model="guardian.full_name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Relationship</label>
+                                    <input type="text" x-model="guardian.relationship">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" x-model="guardian.phone">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" x-model="guardian.email">
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <button type="button" @click="addFiduciary('guardians')" class="btn-add">+ Add Successor Guardian</button>
+                </div>
+            </template>
+
+            <!-- Patient Advocate (Healthcare POA) -->
+            <h3 style="margin-top: 30px;">Patient Advocate (Healthcare Power of Attorney)</h3>
+            <p class="help-text">Who will make medical decisions for you if you cannot?</p>
+            
+            <template x-for="(advocate, index) in formData.fiduciaries.patient_advocates" :key="'advocate-' + index">
+                <div class="repeater-item">
+                    <div class="repeater-header">
+                        <span><span x-text="index === 0 ? 'Primary' : 'Successor'"></span> Patient Advocate</span>
+                        <button type="button" @click="removeFiduciary('patient_advocates', index)" class="btn-remove" x-show="index > 0">Remove</button>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" x-model="advocate.full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship</label>
+                            <input type="text" x-model="advocate.relationship">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" x-model="advocate.phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" x-model="advocate.email">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <button type="button" @click="addFiduciary('patient_advocates')" class="btn-add">+ Add Successor Patient Advocate</button>
+
+            <!-- Financial Power of Attorney -->
+            <h3 style="margin-top: 30px;">Financial Power of Attorney</h3>
+            <p class="help-text">Who will manage your finances if you become incapacitated?</p>
+            
+            <template x-for="(agent, index) in formData.fiduciaries.financial_agents" :key="'agent-' + index">
+                <div class="repeater-item">
+                    <div class="repeater-header">
+                        <span><span x-text="index === 0 ? 'Primary' : 'Successor'"></span> Financial Agent</span>
+                        <button type="button" @click="removeFiduciary('financial_agents', index)" class="btn-remove" x-show="index > 0">Remove</button>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" x-model="agent.full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship</label>
+                            <input type="text" x-model="agent.relationship">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" x-model="agent.phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" x-model="agent.email">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <button type="button" @click="addFiduciary('financial_agents')" class="btn-add">+ Add Successor Financial Agent</button>
+        </div>
+
+        <!-- Step 7: Pet Trust -->
+        <div x-show="step === 7" class="step-content">
+            <h2>Pet Trust</h2>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" x-model="formData.pets.has_pets"> I have pets that I want to provide for
+                </label>
             </div>
 
-            <div x-show="formData.children.length > 0" class="review-box">
-                <h3>Children</h3>
-                <p><span x-text="formData.children.length"></span> child(ren) listed</p>
-            </div>
+            <template x-if="formData.pets.has_pets">
+                <div>
+                    <template x-for="(pet, index) in formData.pets.pets" :key="'pet-' + index">
+                        <div class="repeater-item">
+                            <div class="repeater-header">
+                                <span>Pet <span x-text="index + 1"></span></span>
+                                <button type="button" @click="removePet(index)" class="btn-remove">Remove</button>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Pet's Name</label>
+                                    <input type="text" x-model="pet.name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Type/Breed</label>
+                                    <input type="text" x-model="pet.type" placeholder="e.g., Golden Retriever, Tabby Cat">
+                                </div>
+                                <div class="form-group">
+                                    <label>Age</label>
+                                    <input type="number" x-model="pet.age">
+                                </div>
+                            </div>
 
-            <div x-show="formData.assets.length > 0" class="review-box">
-                <h3>Assets</h3>
-                <p><span x-text="formData.assets.length"></span> asset(s) listed</p>
-            </div>
+                            <div class="form-group">
+                                <label>Special Care Instructions</label>
+                                <textarea x-model="pet.care_instructions" rows="3" placeholder="Dietary needs, medications, veterinary info, etc."></textarea>
+                            </div>
+                        </div>
+                    </template>
 
-            <div class="alert-success">
-                ✓ Ready to submit! Click Submit below to complete your intake form.
+                    <button type="button" @click="addPet()" class="btn-add">+ Add Pet</button>
+
+                    <!-- Pet Caretaker -->
+                    <h3 style="margin-top: 30px;">Pet Caretaker</h3>
+                    <p class="help-text">Who will care for your pets?</p>
+                    
+                    <template x-for="(caretaker, index) in formData.pets.caretakers" :key="'caretaker-' + index">
+                        <div class="repeater-item">
+                            <div class="repeater-header">
+                                <span><span x-text="index === 0 ? 'Primary' : 'Backup'"></span> Pet Caretaker</span>
+                                <button type="button" @click="removePetCaretaker(index)" class="btn-remove" x-show="index > 0">Remove</button>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" x-model="caretaker.name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" x-model="caretaker.phone">
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <button type="button" @click="addPetCaretaker()" class="btn-add">+ Add Backup Caretaker</button>
+
+                    <!-- Pet Trust Funding -->
+                    <h3 style="margin-top: 30px;">Pet Trust Funding</h3>
+                    <div class="form-group">
+                        <label>Estimated Funding Amount</label>
+                        <input type="number" x-model="formData.pets.funding_amount" step="100" placeholder="Amount to set aside for pet care">
+                        <small class="help-text">Consider veterinary care, food, boarding, and estimated lifespan</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>What should happen to remaining funds after pet(s) pass?</label>
+                        <select x-model="formData.pets.remaining_funds">
+                            <option value="caretaker">Give to caretaker</option>
+                            <option value="charity">Donate to animal charity</option>
+                            <option value="estate">Return to estate</option>
+                        </select>
+                    </div>
+                </div>
+            </template>
+
+            <div x-show="!formData.pets.has_pets" class="alert-info">
+                If you don't have pets, click Next to continue.
             </div>
         </div>
 
-        <!-- Navigation -->
+        <!-- Step 8: Review -->
+        <div x-show="step === 8" class="step-content">
+            <h2>Review & Submit</h2>
+            
+            <!-- Personal Information -->
+            <div class="review-box">
+                <h3>✓ Personal Information</h3>
+                <p><strong>Name:</strong> <span x-text="`${formData.personal.first_name} ${formData.personal.last_name}`"></span></p>
+                <p><strong>Email:</strong> <span x-text="formData.personal.email"></span></p>
+                <p><strong>Phone:</strong> <span x-text="formData.personal.primary_phone"></span></p>
+                <p><strong>Address:</strong> <span x-text="`${formData.personal.city}, ${formData.personal.state} ${formData.personal.zip_code}`"></span></p>
+                <p><strong>Marital Status:</strong> <span x-text="formData.personal.marital_status"></span></p>
+            </div>
+
+            <!-- Spouse -->
+            <div x-show="formData.personal.marital_status === 'married' && formData.spouse.spouse_name" class="review-box">
+                <h3>✓ Spouse Information</h3>
+                <p><strong>Spouse:</strong> <span x-text="formData.spouse.spouse_name"></span></p>
+            </div>
+
+            <!-- Children -->
+            <div x-show="formData.children.length > 0" class="review-box">
+                <h3>✓ Children</h3>
+                <p><span x-text="formData.children.length"></span> child(ren) listed</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <template x-for="child in formData.children" :key="child.full_name">
+                        <li x-text="child.full_name + (child.minor ? ' (Minor)' : '')"></li>
+                    </template>
+                </ul>
+            </div>
+
+            <!-- Assets -->
+            <div x-show="formData.assets.length > 0" class="review-box">
+                <h3>✓ Assets</h3>
+                <p><span x-text="formData.assets.length"></span> asset(s) listed</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <template x-for="asset in formData.assets" :key="asset.description">
+                        <li><span x-text="asset.asset_type"></span>: <span x-text="asset.description"></span></li>
+                    </template>
+                </ul>
+            </div>
+
+            <!-- Liabilities -->
+            <div x-show="formData.liabilities.length > 0" class="review-box">
+                <h3>✓ Liabilities</h3>
+                <p><span x-text="formData.liabilities.length"></span> liability(ies) listed</p>
+            </div>
+
+            <!-- Fiduciaries -->
+            <div class="review-box">
+                <h3>✓ Fiduciaries & Decision Makers</h3>
+                
+                <div x-show="formData.fiduciaries.trustees.length > 0">
+                    <p><strong>Trustee:</strong> <span x-text="formData.fiduciaries.trustees[0]?.full_name"></span></p>
+                    <p x-show="formData.fiduciaries.trustees.length > 1"><strong>Successor Trustees:</strong> <span x-text="formData.fiduciaries.trustees.length - 1"></span> named</p>
+                </div>
+
+                <div x-show="formData.fiduciaries.executors.length > 0" style="margin-top: 10px;">
+                    <p><strong>Personal Representative:</strong> <span x-text="formData.fiduciaries.executors[0]?.full_name"></span></p>
+                </div>
+
+                <div x-show="formData.fiduciaries.guardians.length > 0" style="margin-top: 10px;">
+                    <p><strong>Guardian for Children:</strong> <span x-text="formData.fiduciaries.guardians[0]?.full_name"></span></p>
+                </div>
+
+                <div x-show="formData.fiduciaries.patient_advocates.length > 0" style="margin-top: 10px;">
+                    <p><strong>Patient Advocate:</strong> <span x-text="formData.fiduciaries.patient_advocates[0]?.full_name"></span></p>
+                </div>
+
+                <div x-show="formData.fiduciaries.financial_agents.length > 0" style="margin-top: 10px;">
+                    <p><strong>Financial Agent:</strong> <span x-text="formData.fiduciaries.financial_agents[0]?.full_name"></span></p>
+                </div>
+            </div>
+
+            <!-- Pets -->
+            <div x-show="formData.pets.has_pets && formData.pets.pets.length > 0" class="review-box">
+                <h3>✓ Pet Trust</h3>
+                <p><span x-text="formData.pets.pets.length"></span> pet(s) listed</p>
+                <p x-show="formData.pets.caretakers.length > 0"><strong>Caretaker:</strong> <span x-text="formData.pets.caretakers[0]?.name"></span></p>
+                <p x-show="formData.pets.funding_amount"><strong>Funding:</strong> $<span x-text="formData.pets.funding_amount"></span></p>
+            </div>
+
+            <div class="alert-success">
+                <strong>✓ Ready to submit!</strong> Click the Submit button below to complete your intake form.
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
         <div class="navigation-buttons">
             <button type="button" @click="prevStep()" x-show="step > 1" class="btn btn-secondary">
                 ← Previous
@@ -390,6 +751,17 @@
         margin: 15px 0 10px;
     }
 
+    .help-text {
+        color: #666;
+        font-size: 14px;
+        margin: -5px 0 15px 0;
+    }
+
+    .form-group small.help-text {
+        display: block;
+        margin-top: 5px;
+    }
+
     .form-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -409,7 +781,8 @@
     }
 
     .form-group input,
-    .form-group select {
+    .form-group select,
+    .form-group textarea {
         width: 100%;
         padding: 12px;
         border: 2px solid #e0e0e0;
@@ -418,7 +791,8 @@
     }
 
     .form-group input:focus,
-    .form-group select:focus {
+    .form-group select:focus,
+    .form-group textarea:focus {
         outline: none;
         border-color: #667eea;
     }
@@ -528,6 +902,10 @@
         margin-bottom: 20px;
     }
 
+    .review-box ul {
+        list-style: disc;
+    }
+
     .saving-indicator {
         position: fixed;
         bottom: 20px;
@@ -559,7 +937,7 @@
     function intakeForm() {
         return {
             step: 1,
-            totalSteps: 6,
+            totalSteps: 8,
             saving: false,
             
             formData: {
@@ -585,11 +963,29 @@
                 },
                 children: [],
                 assets: [],
-                liabilities: []
+                liabilities: [],
+                fiduciaries: {
+                    trustees: [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'trustee' }],
+                    executors: [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'personal_representative' }],
+                    guardians: [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'guardian' }],
+                    patient_advocates: [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'healthcare_poa' }],
+                    financial_agents: [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'financial_poa' }]
+                },
+                pets: {
+                    has_pets: false,
+                    pets: [],
+                    caretakers: [{ name: '', phone: '' }],
+                    funding_amount: null,
+                    remaining_funds: 'caretaker'
+                }
             },
 
             get progress() {
                 return Math.round((this.step / this.totalSteps) * 100);
+            },
+
+            get hasMinorChildren() {
+                return this.formData.children.some(child => child.minor);
             },
 
             init() {
@@ -612,6 +1008,23 @@
                 
                 @if($liabilities && count($liabilities) > 0)
                     this.formData.liabilities = @json($liabilities);
+                @endif
+
+                @if($fiduciaries && count($fiduciaries) > 0)
+                    // Load fiduciaries and group by role
+                    const fiduciaries = @json($fiduciaries);
+                    this.formData.fiduciaries.trustees = fiduciaries.filter(f => f.role_type === 'trustee' || f.role_type === 'successor_trustee');
+                    this.formData.fiduciaries.executors = fiduciaries.filter(f => f.role_type === 'personal_representative' || f.role_type === 'successor_personal_representative');
+                    this.formData.fiduciaries.guardians = fiduciaries.filter(f => f.role_type === 'guardian' || f.role_type === 'successor_guardian');
+                    this.formData.fiduciaries.patient_advocates = fiduciaries.filter(f => f.role_type === 'healthcare_poa');
+                    this.formData.fiduciaries.financial_agents = fiduciaries.filter(f => f.role_type === 'financial_poa');
+                    
+                    // Ensure at least one empty entry for each category
+                    if (this.formData.fiduciaries.trustees.length === 0) this.formData.fiduciaries.trustees = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'trustee' }];
+                    if (this.formData.fiduciaries.executors.length === 0) this.formData.fiduciaries.executors = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'personal_representative' }];
+                    if (this.formData.fiduciaries.guardians.length === 0) this.formData.fiduciaries.guardians = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'guardian' }];
+                    if (this.formData.fiduciaries.patient_advocates.length === 0) this.formData.fiduciaries.patient_advocates = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'healthcare_poa' }];
+                    if (this.formData.fiduciaries.financial_agents.length === 0) this.formData.fiduciaries.financial_agents = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'financial_poa' }];
                 @endif
             },
 
@@ -667,6 +1080,52 @@
 
             removeLiability(index) {
                 this.formData.liabilities.splice(index, 1);
+            },
+
+            addFiduciary(type) {
+                const roleMap = {
+                    'trustees': 'successor_trustee',
+                    'executors': 'successor_personal_representative',
+                    'guardians': 'successor_guardian',
+                    'patient_advocates': 'healthcare_poa',
+                    'financial_agents': 'financial_poa'
+                };
+                
+                this.formData.fiduciaries[type].push({
+                    full_name: '',
+                    relationship: '',
+                    phone: '',
+                    email: '',
+                    role_type: roleMap[type]
+                });
+            },
+
+            removeFiduciary(type, index) {
+                this.formData.fiduciaries[type].splice(index, 1);
+            },
+
+            addPet() {
+                this.formData.pets.pets.push({
+                    name: '',
+                    type: '',
+                    age: null,
+                    care_instructions: ''
+                });
+            },
+
+            removePet(index) {
+                this.formData.pets.pets.splice(index, 1);
+            },
+
+            addPetCaretaker() {
+                this.formData.pets.caretakers.push({
+                    name: '',
+                    phone: ''
+                });
+            },
+
+            removePetCaretaker(index) {
+                this.formData.pets.caretakers.splice(index, 1);
             },
 
             save() {

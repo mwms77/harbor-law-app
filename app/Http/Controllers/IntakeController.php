@@ -33,6 +33,7 @@ class IntakeController extends Controller
         $children = $user->intakeChildren;
         $assets = $user->intakeAssets;
         $liabilities = $user->intakeLiabilities;
+        $fiduciaries = $user->intakeFiduciaries;
 
         return view('intake.form', compact(
             'user',
@@ -41,7 +42,8 @@ class IntakeController extends Controller
             'spouseInfo', 
             'children',
             'assets',
-            'liabilities'
+            'liabilities',
+            'fiduciaries'
         ));
     }
 
@@ -104,6 +106,36 @@ class IntakeController extends Controller
                 foreach ($request->data['liabilities'] as $index => $liabilityData) {
                     $liabilityData['sort_order'] = $index;
                     IntakeLiability::create(array_merge($liabilityData, ['user_id' => $user->id]));
+                }
+            }
+
+            // Save fiduciaries
+            if (isset($request->data['fiduciaries'])) {
+                // Delete existing fiduciaries
+                $user->intakeFiduciaries()->delete();
+                
+                $sortOrder = 0;
+                // Save all fiduciary types
+                foreach ($request->data['fiduciaries'] as $type => $fiduciaryList) {
+                    foreach ($fiduciaryList as $fiduciaryData) {
+                        // Only save if name is provided
+                        if (!empty($fiduciaryData['full_name'])) {
+                            $fiduciaryData['sort_order'] = $sortOrder++;
+                            \App\Models\IntakeFiduciary::create(array_merge($fiduciaryData, ['user_id' => $user->id]));
+                        }
+                    }
+                }
+            }
+
+            // Save pets data as JSON in a notes field for now
+            // (You could create a separate pets table if needed)
+            if (isset($request->data['pets'])) {
+                // For now, we'll store pet info in the notes field of intake_submissions
+                $submission = IntakeSubmission::where('user_id', $user->id)->first();
+                if ($submission) {
+                    $submission->update([
+                        'notes' => json_encode($request->data['pets'])
+                    ]);
                 }
             }
 
