@@ -63,8 +63,8 @@
                     <input type="text" x-model="formData.personal.city" required>
                 </div>
                 <div class="form-group">
-                    <label>County *</label>
-                    <input type="text" x-model="formData.personal.county" required>
+                    <label>County</label>
+                    <input type="text" x-model="formData.personal.county">
                 </div>
                 <div class="form-group">
                     <label>State *</label>
