@@ -131,7 +131,7 @@
                         <a href="{{ route('estate-plans.download', $plan) }}" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;">
                             Download
                         </a>
-                        <form action="{{ route('admin.users.delete-plan', [$user, $plan]) }}" method="POST" style="display: inline;">
+                        <form action="{{ route('admin.users.delete-plan', $plan) }}" method="POST" style="display: inline;">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Are you sure?')">
