@@ -1006,11 +1006,21 @@
                 @if($personalInfo)
                     const loadedPersonal = @json($personalInfo);
                     console.log('Personal Info from DB:', loadedPersonal);
+                    
+                    // Helper function to format date for input[type="date"]
+                    const formatDate = (dateString) => {
+                        if (!dateString) return '';
+                        // Extract just YYYY-MM-DD from any date format
+                        const date = new Date(dateString);
+                        if (isNaN(date.getTime())) return '';
+                        return date.toISOString().split('T')[0];
+                    };
+                    
                     this.formData.personal = {
                         first_name: loadedPersonal.first_name || '',
                         middle_name: loadedPersonal.middle_name || '',
                         last_name: loadedPersonal.last_name || '',
-                        date_of_birth: loadedPersonal.date_of_birth || '',
+                        date_of_birth: formatDate(loadedPersonal.date_of_birth),
                         email: loadedPersonal.email || '',
                         primary_phone: loadedPersonal.primary_phone || '',
                         street_address: loadedPersonal.street_address || '',
@@ -1028,9 +1038,9 @@
                     console.log('Spouse Info from DB:', loadedSpouse);
                     this.formData.spouse = {
                         spouse_name: loadedSpouse.spouse_name || '',
-                        spouse_dob: loadedSpouse.spouse_dob || '',
+                        spouse_dob: formatDate(loadedSpouse.spouse_dob),
                         spouse_occupation: loadedSpouse.spouse_occupation || '',
-                        marriage_date: loadedSpouse.marriage_date || '',
+                        marriage_date: formatDate(loadedSpouse.marriage_date),
                         marriage_location: loadedSpouse.marriage_location || ''
                     };
                     console.log('Spouse Info after mapping:', this.formData.spouse);
@@ -1041,7 +1051,7 @@
                     console.log('Children from DB:', loadedChildren);
                     this.formData.children = loadedChildren.map(child => ({
                         full_name: child.full_name || '',
-                        date_of_birth: child.date_of_birth || '',
+                        date_of_birth: formatDate(child.date_of_birth),
                         relationship: child.relationship || 'biological',
                         minor: child.minor || false
                     }));
