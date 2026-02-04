@@ -63,6 +63,10 @@
                     <input type="text" x-model="formData.personal.city" required>
                 </div>
                 <div class="form-group">
+                    <label>County *</label>
+                    <input type="text" x-model="formData.personal.county" required>
+                </div>
+                <div class="form-group">
                     <label>State *</label>
                     <input type="text" x-model="formData.personal.state" required>
                 </div>
@@ -950,6 +954,7 @@
                     primary_phone: '',
                     street_address: '',
                     city: '',
+                    county: '',
                     state: 'Michigan',
                     zip_code: '',
                     marital_status: ''
@@ -995,35 +1000,90 @@
                     this.step = savedStep;
                 }
 
+                console.log('=== LOADING DATA FROM DATABASE ===');
+
                 // Load existing data from backend
                 @if($personalInfo)
-                    this.formData.personal = @json($personalInfo);
+                    const loadedPersonal = @json($personalInfo);
+                    console.log('Personal Info from DB:', loadedPersonal);
+                    this.formData.personal = {
+                        first_name: loadedPersonal.first_name || '',
+                        middle_name: loadedPersonal.middle_name || '',
+                        last_name: loadedPersonal.last_name || '',
+                        date_of_birth: loadedPersonal.date_of_birth || '',
+                        email: loadedPersonal.email || '',
+                        primary_phone: loadedPersonal.primary_phone || '',
+                        street_address: loadedPersonal.street_address || '',
+                        city: loadedPersonal.city || '',
+                        county: loadedPersonal.county || '',
+                        state: loadedPersonal.state || 'Michigan',
+                        zip_code: loadedPersonal.zip_code || '',
+                        marital_status: loadedPersonal.marital_status || ''
+                    };
+                    console.log('Personal Info after mapping:', this.formData.personal);
                 @endif
                 
                 @if($spouseInfo)
-                    this.formData.spouse = @json($spouseInfo);
+                    const loadedSpouse = @json($spouseInfo);
+                    console.log('Spouse Info from DB:', loadedSpouse);
+                    this.formData.spouse = {
+                        spouse_name: loadedSpouse.spouse_name || '',
+                        spouse_dob: loadedSpouse.spouse_dob || '',
+                        spouse_occupation: loadedSpouse.spouse_occupation || '',
+                        marriage_date: loadedSpouse.marriage_date || '',
+                        marriage_location: loadedSpouse.marriage_location || ''
+                    };
+                    console.log('Spouse Info after mapping:', this.formData.spouse);
                 @endif
                 
                 @if($children && count($children) > 0)
-                    this.formData.children = @json($children);
+                    const loadedChildren = @json($children);
+                    console.log('Children from DB:', loadedChildren);
+                    this.formData.children = loadedChildren.map(child => ({
+                        full_name: child.full_name || '',
+                        date_of_birth: child.date_of_birth || '',
+                        relationship: child.relationship || 'biological',
+                        minor: child.minor || false
+                    }));
+                    console.log('Children after mapping:', this.formData.children);
                 @endif
                 
                 @if($assets && count($assets) > 0)
-                    this.formData.assets = @json($assets);
+                    const loadedAssets = @json($assets);
+                    console.log('Assets from DB:', loadedAssets);
+                    this.formData.assets = loadedAssets.map(asset => ({
+                        asset_type: asset.asset_type || 'bank_account',
+                        description: asset.description || '',
+                        estimated_value: asset.estimated_value || null,
+                        ownership: asset.ownership || 'individual'
+                    }));
+                    console.log('Assets after mapping:', this.formData.assets);
                 @endif
                 
                 @if($liabilities && count($liabilities) > 0)
-                    this.formData.liabilities = @json($liabilities);
+                    const loadedLiabilities = @json($liabilities);
+                    console.log('Liabilities from DB:', loadedLiabilities);
+                    this.formData.liabilities = loadedLiabilities.map(liability => ({
+                        liability_type: liability.liability_type || 'credit_card',
+                        lender: liability.lender || '',
+                        balance_owed: liability.balance_owed || null,
+                        monthly_payment: liability.monthly_payment || null
+                    }));
+                    console.log('Liabilities after mapping:', this.formData.liabilities);
                 @endif
 
                 @if($fiduciaries && count($fiduciaries) > 0)
                     // Load fiduciaries and group by role
                     const fiduciaries = @json($fiduciaries);
+                    console.log('Fiduciaries from DB:', fiduciaries);
+                    
                     this.formData.fiduciaries.trustees = fiduciaries.filter(f => f.role_type === 'trustee' || f.role_type === 'successor_trustee');
                     this.formData.fiduciaries.executors = fiduciaries.filter(f => f.role_type === 'personal_representative' || f.role_type === 'successor_personal_representative');
                     this.formData.fiduciaries.guardians = fiduciaries.filter(f => f.role_type === 'guardian' || f.role_type === 'successor_guardian');
                     this.formData.fiduciaries.patient_advocates = fiduciaries.filter(f => f.role_type === 'healthcare_poa');
                     this.formData.fiduciaries.financial_agents = fiduciaries.filter(f => f.role_type === 'financial_poa');
+                    
+                    console.log('Fiduciaries after grouping:', this.formData.fiduciaries);
                     
                     // Ensure at least one empty entry for each category
                     if (this.formData.fiduciaries.trustees.length === 0) this.formData.fiduciaries.trustees = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'trustee' }];
@@ -1037,13 +1097,17 @@
                 @if($submission && $submission->notes)
                     try {
                         const petData = @json(json_decode($submission->notes, true));
+                        console.log('Pet data from DB:', petData);
                         if (petData) {
                             this.formData.pets = petData;
                         }
+                        console.log('Pet data after loading:', this.formData.pets);
                     } catch(e) {
-                        console.log('No pet data to load');
+                        console.log('No pet data to load or error:', e);
                     }
                 @endif
+
+                console.log('=== FINAL FORM DATA ===', this.formData);
             },
 
             nextStep() {
