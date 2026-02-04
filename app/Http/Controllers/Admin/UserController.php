@@ -8,6 +8,8 @@ use App\Models\EstatePlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
@@ -196,11 +198,11 @@ class UserController extends Controller
             $emailStatus = '';
             if (class_exists('\App\Mail\EstatePlanUploaded')) {
                 try {
-                    \Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
+                    Mail::to($user->email)->send(new \App\Mail\EstatePlanUploaded($estatePlan, $user));
                     $emailStatus = ' User has been notified by email.';
                 } catch (\Exception $e) {
                     // Log error but don't fail the upload
-                    \Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
+                    Log::error('Failed to send estate plan upload email: ' . $e->getMessage());
                     $emailStatus = ' (Note: Email notification could not be sent - ' . $e->getMessage() . ')';
                 }
             } else {
