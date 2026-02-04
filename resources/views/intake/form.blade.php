@@ -1002,19 +1002,25 @@
 
                 console.log('=== LOADING DATA FROM DATABASE ===');
 
+                // Helper function to format date for input[type="date"]
+                const formatDate = (dateString) => {
+                    if (!dateString) return '';
+                    console.log('Formatting date:', dateString);
+                    // Extract just YYYY-MM-DD from any date format
+                    const date = new Date(dateString);
+                    if (isNaN(date.getTime())) {
+                        console.log('Invalid date:', dateString);
+                        return '';
+                    }
+                    const formatted = date.toISOString().split('T')[0];
+                    console.log('Formatted to:', formatted);
+                    return formatted;
+                };
+
                 // Load existing data from backend
                 @if($personalInfo)
                     const loadedPersonal = @json($personalInfo);
                     console.log('Personal Info from DB:', loadedPersonal);
-                    
-                    // Helper function to format date for input[type="date"]
-                    const formatDate = (dateString) => {
-                        if (!dateString) return '';
-                        // Extract just YYYY-MM-DD from any date format
-                        const date = new Date(dateString);
-                        if (isNaN(date.getTime())) return '';
-                        return date.toISOString().split('T')[0];
-                    };
                     
                     this.formData.personal = {
                         first_name: loadedPersonal.first_name || '',
