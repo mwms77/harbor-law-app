@@ -127,23 +127,27 @@ class IntakeController extends Controller
                 }
             }
 
-            // Save pets data as JSON in a notes field for now
-            // (You could create a separate pets table if needed)
-            if (isset($request->data['pets'])) {
-                // For now, we'll store pet info in the notes field of intake_submissions
-                $submission = IntakeSubmission::where('user_id', $user->id)->first();
-                if ($submission) {
-                    $submission->update([
-                        'notes' => json_encode($request->data['pets'])
-                    ]);
-                }
+            // Update submission progress
+            $submission = IntakeSubmission::where('user_id', $user->id)->first();
+            if ($submission) {
+                // Calculate progress based on current step (from request)
+                $currentStep = $request->input('current_step', 1);
+                $totalSteps = 8;
+                $progressPercentage = round(($currentStep / $totalSteps) * 100);
+                
+                $submission->update([
+                    'current_section' => $currentStep,
+                    'progress_percentage' => $progressPercentage,
+                    'notes' => isset($request->data['pets']) ? json_encode($request->data['pets']) : $submission->notes
+                ]);
             }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data saved successfully'
+                'message' => 'Data saved successfully',
+                'progress' => $progressPercentage ?? 0
             ]);
 
         } catch (\Exception $e) {

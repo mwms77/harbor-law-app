@@ -989,6 +989,12 @@
             },
 
             init() {
+                // Restore saved step from database
+                const savedStep = {{ $submission->current_section ?? 1 }};
+                if (savedStep > 1) {
+                    this.step = savedStep;
+                }
+
                 // Load existing data from backend
                 @if($personalInfo)
                     this.formData.personal = @json($personalInfo);
@@ -1025,6 +1031,18 @@
                     if (this.formData.fiduciaries.guardians.length === 0) this.formData.fiduciaries.guardians = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'guardian' }];
                     if (this.formData.fiduciaries.patient_advocates.length === 0) this.formData.fiduciaries.patient_advocates = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'healthcare_poa' }];
                     if (this.formData.fiduciaries.financial_agents.length === 0) this.formData.fiduciaries.financial_agents = [{ full_name: '', relationship: '', phone: '', email: '', role_type: 'financial_poa' }];
+                @endif
+
+                // Load pet data from notes field
+                @if($submission && $submission->notes)
+                    try {
+                        const petData = @json(json_decode($submission->notes, true));
+                        if (petData) {
+                            this.formData.pets = petData;
+                        }
+                    } catch(e) {
+                        console.log('No pet data to load');
+                    }
                 @endif
             },
 
@@ -1137,7 +1155,10 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ data: this.formData })
+                    body: JSON.stringify({ 
+                        data: this.formData,
+                        current_step: this.step
+                    })
                 })
                 .then(response => response.json())
                 .then(result => {
