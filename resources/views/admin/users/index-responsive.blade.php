@@ -153,7 +153,7 @@
                 @endforeach
             </div>
 
-            {{-- DESKTOP VIEW: Table (â‰¥ lg) --}}
+            {{-- DESKTOP VIEW: Table (≥ lg) --}}
             <div class="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">

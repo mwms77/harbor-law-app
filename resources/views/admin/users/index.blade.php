@@ -143,7 +143,7 @@
                     <span class="user-card-meta-label">Intake</span>
                     @if($user->intakeSubmission)
                         @if($user->intakeSubmission->is_completed)
-                            <span style="color: #28a745; font-weight: 600; font-size: 12px;">âœ“ Done</span>
+                            <span style="color: #28a745; font-weight: 600; font-size: 12px;">✓ Done</span>
                         @else
                             <span style="color: #667eea; font-weight: 600; font-size: 12px;">{{ $user->intakeSubmission->progress_percentage }}%</span>
                         @endif
@@ -227,7 +227,7 @@
                         <td>
                             @if($user->intakeSubmission)
                                 @if($user->intakeSubmission->is_completed)
-                                    <span style="color: #28a745; font-weight: 600;">âœ“ Completed</span>
+                                    <span style="color: #28a745; font-weight: 600;">✓ Completed</span>
                                 @else
                                     <span style="color: #667eea; font-weight: 600;">{{ $user->intakeSubmission->progress_percentage }}%</span>
                                 @endif

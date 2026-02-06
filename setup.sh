@@ -9,9 +9,9 @@ echo ""
 if [ ! -f .env ]; then
     echo "Creating .env file..."
     cp .env.example .env
-    echo "âœ“ .env file created"
+    echo "✓ .env file created"
 else
-    echo "âœ“ .env file already exists"
+    echo "✓ .env file already exists"
 fi
 
 # Install composer dependencies

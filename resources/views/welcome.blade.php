@@ -24,19 +24,19 @@
         <h3 style="color: #667eea; margin-bottom: 20px;">Features:</h3>
         <ul style="list-style: none; padding: 0;">
             <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
-                âœ“ Secure account creation and login
+                ✓ Secure account creation and login
             </li>
             <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
-                âœ“ Comprehensive intake questionnaire
+                ✓ Comprehensive intake questionnaire
             </li>
             <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
-                âœ“ Auto-save functionality
+                ✓ Auto-save functionality
             </li>
             <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
-                âœ“ Download your submitted information
+                ✓ Download your submitted information
             </li>
             <li style="padding: 10px 0;">
-                âœ“ Access completed estate plan documents
+                ✓ Access completed estate plan documents
             </li>
         </ul>
     </div>
