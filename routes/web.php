@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ClientUploadController;
 use App\Http\Controllers\IntakeController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,7 @@ Route::get('/', function () {
 | Authentication Routes
 |--------------------------------------------------------------------------
 */
-//require __DIR__.'/auth.php';
+Auth::routes();
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +34,12 @@ Route::middleware(['auth'])->group(function () {
         return view('client.dashboard');
     })->name('dashboard');
 
-    // Intake Form Routes (assuming these exist from your current setup)
+    // Home redirect
+    Route::get('/home', function () {
+        return redirect()->route('dashboard');
+    })->name('home');
+
+    // Intake Form Routes
     Route::get('/intake', [IntakeController::class, 'index'])->name('intake.index');
     Route::post('/intake', [IntakeController::class, 'store'])->name('intake.store');
 
