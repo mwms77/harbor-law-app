@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\EstatePlanController;
+use App\Http\Controllers\ClientUploadController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
@@ -47,6 +48,18 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::post('/estate-plans/{estatePlan}/update-status', [AdminUserController::class, 'updatePlanStatus'])->name('admin.estate-plans.update-status');
     Route::post('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     
+    // PHASE 1: User status and notes
+    Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->name('admin.users.update-status');
+    Route::post('/users/{user}/notes', [AdminUserController::class, 'addNote'])->name('admin.users.notes.add');
+    Route::delete('/notes/{note}', [AdminUserController::class, 'deleteNote'])->name('admin.users.notes.delete');
+    
+    // PHASE 1: Upload management
+    Route::get('/uploads', [AdminUserController::class, 'uploads'])->name('admin.uploads');
+    Route::get('/uploads/user/{user}', [AdminUserController::class, 'userUploads'])->name('admin.uploads.user');
+    Route::get('/uploads/{upload}/download', [AdminUserController::class, 'downloadUpload'])->name('admin.uploads.download');
+    Route::delete('/uploads/{upload}', [AdminUserController::class, 'deleteUpload'])->name('admin.uploads.delete');
+    Route::get('/uploads/user/{user}/zip', [AdminUserController::class, 'downloadUserZip'])->name('admin.uploads.zip');
+    
     // Settings
     Route::get('/settings', [AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::post('/settings/logo', [AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.upload-logo');
@@ -70,4 +83,9 @@ Route::middleware('auth')->group(function () {
     // Estate plan downloads
     Route::get('/estate-plans/{estatePlan}/download', [EstatePlanController::class, 'download'])->name('estate-plans.download');
     Route::get('/estate-plans/{estatePlan}/view', [EstatePlanController::class, 'view'])->name('estate-plans.view');
+    
+    // PHASE 1: Client uploads
+    Route::get('/uploads', [ClientUploadController::class, 'index'])->name('uploads.index');
+    Route::post('/uploads', [ClientUploadController::class, 'store'])->name('uploads.store');
+    Route::get('/uploads/{upload}/download', [ClientUploadController::class, 'download'])->name('uploads.download');
 });

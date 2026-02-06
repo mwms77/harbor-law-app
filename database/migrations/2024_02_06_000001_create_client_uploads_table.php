@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('mime_type');          // e.g., application/pdf
             $table->enum('category', [
                 'id_documents',
-                'property_documents',
+                'property_documents', 
                 'financial_documents',
                 'beneficiary_information',
                 'health_care_directives',

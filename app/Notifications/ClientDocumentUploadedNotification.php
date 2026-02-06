@@ -6,24 +6,23 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\ClientUpload;
 
 class ClientDocumentUploadedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    protected $uploads;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct(
-        public int $fileCount,
-        public string $category
-    ) {}
+    public function __construct($uploads)
+    {
+        $this->uploads = is_array($uploads) ? $uploads : [$uploads];
+    }
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
@@ -35,32 +34,39 @@ class ClientDocumentUploadedNotification extends Notification implements ShouldQ
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $categoryName = ClientUpload::$categories[$this->category] ?? 'Documents';
-        
+        $fileCount = count($this->uploads);
+        $category = $this->uploads[0]->category_name ?? 'documents';
+
         return (new MailMessage)
-            ->subject('Document Upload Confirmation - Harbor Law')
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('This email confirms that your documents have been successfully uploaded to your Harbor Law estate planning portal.')
-            ->line('**Upload Details:**')
-            ->line('Files uploaded: ' . $this->fileCount)
-            ->line('Category: ' . $categoryName)
-            ->line('Upload date: ' . now()->format('F j, Y \a\t g:i A'))
-            ->line('Your documents are now securely stored and available for review by our team.')
-            ->action('View Your Uploads', url('/uploads'))
-            ->line('If you need to upload additional documents, you can do so at any time through your client portal.')
-            ->line('Thank you for choosing Harbor Law for your estate planning needs.');
+            ->subject('Document Upload Confirmation')
+            ->greeting('Hello ' . $notifiable->first_name . ',')
+            ->line('We have successfully received ' . $fileCount . ' document(s) in the category: ' . $category . '.')
+            ->line('Files uploaded:')
+            ->lines($this->getFileList())
+            ->line('Total files uploaded to date: ' . $notifiable->uploads()->count())
+            ->action('View Your Documents', route('uploads.index'))
+            ->line('If you have additional documents to upload, you can do so at any time through your client portal.')
+            ->salutation('Best regards, Harbor Law');
     }
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
         return [
-            'file_count' => $this->fileCount,
-            'category' => $this->category,
+            'upload_count' => count($this->uploads),
+            'category' => $this->uploads[0]->category ?? null,
         ];
+    }
+
+    /**
+     * Get formatted file list.
+     */
+    protected function getFileList(): array
+    {
+        return array_map(function($upload) {
+            return '• ' . $upload->original_name . ' (' . $upload->formatted_size . ')';
+        }, $this->uploads);
     }
 }

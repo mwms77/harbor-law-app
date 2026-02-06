@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->enum('status', [
                 'pending',
-                'in_progress',
+                'in_progress', 
                 'documents_uploaded',
                 'plan_delivered',
                 'completed'

@@ -10,11 +10,6 @@ class ClientUpload extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'filename',
@@ -24,30 +19,8 @@ class ClientUpload extends Model
         'file_size',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'file_size' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
-    ];
-
-    /**
-     * Available file categories for estate planning documents.
-     *
-     * @var array<string, string>
-     */
-    public static $categories = [
-        'id_documents' => 'ID Documents',
-        'property_documents' => 'Property Documents',
-        'financial_documents' => 'Financial Documents',
-        'beneficiary_information' => 'Beneficiary Information',
-        'health_care_directives' => 'Health Care Directives',
-        'other' => 'Other',
     ];
 
     /**
@@ -60,25 +33,30 @@ class ClientUpload extends Model
 
     /**
      * Get human-readable category name.
-     *
-     * @return string
      */
-    public function getCategoryNameAttribute()
+    public function getCategoryNameAttribute(): string
     {
-        return self::$categories[$this->category] ?? 'Unknown';
+        $categories = [
+            'id_documents' => 'ID Documents',
+            'property_documents' => 'Property Documents',
+            'financial_documents' => 'Financial Documents',
+            'beneficiary_information' => 'Beneficiary Information',
+            'health_care_directives' => 'Health Care Directives',
+            'other' => 'Other',
+        ];
+
+        return $categories[$this->category] ?? $this->category;
     }
 
     /**
-     * Get formatted file size.
-     *
-     * @return string
+     * Get human-readable file size.
      */
-    public function getFormattedSizeAttribute()
+    public function getFormattedSizeAttribute(): string
     {
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
         
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+        for ($i = 0; $bytes > 1024; $i++) {
             $bytes /= 1024;
         }
         
@@ -86,47 +64,18 @@ class ClientUpload extends Model
     }
 
     /**
-     * Get file extension from original filename.
-     *
-     * @return string
+     * Get file icon based on mime type.
      */
-    public function getExtensionAttribute()
+    public function getFileIconAttribute(): string
     {
-        return pathinfo($this->original_name, PATHINFO_EXTENSION);
-    }
-
-    /**
-     * Get full storage path for this file.
-     *
-     * @return string
-     */
-    public function getStoragePathAttribute()
-    {
-        return 'private/client-uploads/' . $this->user_id . '/' . $this->filename;
-    }
-
-    /**
-     * Check if file is an image.
-     *
-     * @return bool
-     */
-    public function isImage()
-    {
-        return in_array($this->mime_type, [
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/heic',
-        ]);
-    }
-
-    /**
-     * Check if file is a PDF.
-     *
-     * @return bool
-     */
-    public function isPdf()
-    {
-        return $this->mime_type === 'application/pdf';
+        if (str_contains($this->mime_type, 'pdf')) {
+            return 'document-text';
+        }
+        
+        if (str_contains($this->mime_type, 'image')) {
+            return 'photograph';
+        }
+        
+        return 'document';
     }
 }

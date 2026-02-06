@@ -20,6 +20,7 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'status',
     ];
 
     protected $hidden = [
@@ -114,6 +115,17 @@ class User extends Authenticatable
         return $this->hasMany(EstatePlan::class, 'uploaded_by');
     }
 
+    // NEW: Phase 1 relationships
+    public function uploads()
+    {
+        return $this->hasMany(ClientUpload::class);
+    }
+
+    public function adminNotes()
+    {
+        return $this->hasMany(AdminNote::class);
+    }
+
     // Role helpers
     public function isAdmin(): bool
     {
@@ -123,5 +135,30 @@ class User extends Authenticatable
     public function isUser(): bool
     {
         return $this->role === 'user';
+    }
+
+    // NEW: Status helper
+    public function getStatusBadgeColorAttribute(): string
+    {
+        return match($this->status) {
+            'pending' => 'gray',
+            'in_progress' => 'yellow',
+            'documents_uploaded' => 'blue',
+            'plan_delivered' => 'purple',
+            'completed' => 'green',
+            default => 'gray',
+        };
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match($this->status) {
+            'pending' => 'Pending',
+            'in_progress' => 'In Progress',
+            'documents_uploaded' => 'Documents Uploaded',
+            'plan_delivered' => 'Plan Delivered',
+            'completed' => 'Completed',
+            default => ucfirst(str_replace('_', ' ', $this->status)),
+        };
     }
 }

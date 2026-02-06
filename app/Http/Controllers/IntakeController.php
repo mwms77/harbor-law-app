@@ -6,12 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Models\IntakeSubmission;
 use App\Models\IntakePersonalInfo;
 use App\Models\IntakeSpouseInfo;
 use App\Models\IntakeChild;
 use App\Models\IntakeAsset;
 use App\Models\IntakeLiability;
+use App\Models\User;
+use App\Notifications\IntakeCompletedNotification;
 
 class IntakeController extends Controller
 {
@@ -240,6 +243,21 @@ class IntakeController extends Controller
                 $submission->progress_percentage = 100;
                 $submission->status = 'submitted';
                 $submission->save();
+
+                // Update user status
+                $user->update(['status' => 'in_progress']);
+
+                // PHASE 1: Send notification to admin
+                try {
+                    $adminEmail = config('mail.admin_email', 'matt@harbor.law');
+                    $admin = User::where('email', $adminEmail)->first();
+                    if ($admin) {
+                        $admin->notify(new IntakeCompletedNotification($user, $submission));
+                    }
+                } catch (\Exception $e) {
+                    // Log error but don't fail the submission
+                    Log::error('Failed to send intake completion notification: ' . $e->getMessage());
+                }
             }
 
             DB::commit();
