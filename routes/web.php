@@ -1,76 +1,73 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ClientUploadController;
-use App\Http\Controllers\IntakeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IntakeController;
+use App\Http\Controllers\EstatePlanController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
+// Public routes
 Route::get('/', function () {
-    return view('welcome');
-});
-
-/*
-|--------------------------------------------------------------------------
-| Authentication Routes
-|--------------------------------------------------------------------------
-*/
-Auth::routes();
-
-/*
-|--------------------------------------------------------------------------
-| Client Routes (Authenticated Users)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('client.dashboard');
-    })->name('dashboard');
-
-    // Home redirect
-    Route::get('/home', function () {
+    if (Auth::check()) {
         return redirect()->route('dashboard');
-    })->name('home');
+    }
+    return view('welcome');
+})->name('home');
 
-    // Intake Form Routes
-    Route::get('/intake', [IntakeController::class, 'index'])->name('intake.index');
-    Route::post('/intake', [IntakeController::class, 'store'])->name('intake.store');
+// Authentication routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Client Document Upload Routes
-    Route::get('/uploads', [ClientUploadController::class, 'index'])->name('uploads.index');
-    Route::post('/uploads', [ClientUploadController::class, 'store'])->name('uploads.store');
-    Route::get('/uploads/{upload}/download', [ClientUploadController::class, 'download'])->name('uploads.download');
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
+
+// Admin routes
+Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    
+    // User management
+    Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');
+    Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('admin.users.show');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+    Route::delete('/users/{user}/force', [AdminUserController::class, 'forceDestroy'])->name('admin.users.force-destroy');
+    Route::get('/users/{user}/download-intake', [AdminUserController::class, 'downloadIntake'])->name('admin.users.download-intake');
+    Route::post('/users/{user}/upload-plan', [AdminUserController::class, 'uploadPlan'])->name('admin.users.upload-plan');
+    Route::delete('/estate-plans/{estatePlan}', [AdminUserController::class, 'deletePlan'])->name('admin.users.delete-plan');
+    Route::post('/estate-plans/{estatePlan}/update-status', [AdminUserController::class, 'updatePlanStatus'])->name('admin.estate-plans.update-status');
+    Route::post('/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
+    
+    // Settings
+    Route::get('/settings', [AdminSettingsController::class, 'index'])->name('admin.settings');
+    Route::post('/settings/logo', [AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.upload-logo');
+    Route::delete('/settings/logo', [AdminSettingsController::class, 'deleteLogo'])->name('admin.settings.delete-logo');
+    
+    // Profile
+    Route::get('/profile', [AdminProfileController::class, 'edit'])->name('admin.profile.edit');
+    Route::post('/profile', [AdminProfileController::class, 'update'])->name('admin.profile.update');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Admin Routes (Admin Middleware Required)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    // Admin Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+// User routes
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // User Management
-    Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
-    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
-    Route::patch('/users/{user}/status', [AdminController::class, 'updateStatus'])->name('admin.users.status');
+    // Intake form
+    Route::get('/intake', [IntakeController::class, 'show'])->name('intake.show');
+    Route::post('/intake/save-all', [IntakeController::class, 'saveAll'])->name('intake.save-all');
+    Route::post('/intake/submit-all', [IntakeController::class, 'submitAll'])->name('intake.submit-all');
+    Route::get('/intake/download', [IntakeController::class, 'download'])->name('intake.download');
     
-    // Admin Notes
-    Route::post('/users/{user}/notes', [AdminController::class, 'addNote'])->name('admin.users.notes.add');
-    Route::delete('/notes/{note}', [AdminController::class, 'deleteNote'])->name('admin.users.notes.delete');
-    
-    // Upload Management
-    Route::get('/uploads', [AdminController::class, 'uploads'])->name('admin.uploads');
-    Route::get('/uploads/user/{user}', [AdminController::class, 'userUploads'])->name('admin.uploads.user');
-    Route::get('/uploads/{upload}/download', [AdminController::class, 'downloadUpload'])->name('admin.uploads.download');
-    Route::delete('/uploads/{upload}', [AdminController::class, 'deleteUpload'])->name('admin.uploads.delete');
-    Route::get('/uploads/user/{user}/zip', [AdminController::class, 'downloadUserZip'])->name('admin.uploads.zip');
+    // Estate plan downloads
+    Route::get('/estate-plans/{estatePlan}/download', [EstatePlanController::class, 'download'])->name('estate-plans.download');
+    Route::get('/estate-plans/{estatePlan}/view', [EstatePlanController::class, 'view'])->name('estate-plans.view');
 });

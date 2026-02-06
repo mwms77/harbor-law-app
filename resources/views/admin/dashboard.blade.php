@@ -1,202 +1,178 @@
-@extends('layouts.admin')
+@extends('layouts.app')
+
+@section('title', 'Admin Dashboard')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p class="mt-2 text-gray-600">Estate planning application overview and statistics</p>
+
+<style>
+    /* Responsive stats grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    @media (min-width: 640px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
+    /* Hide table on mobile, show cards */
+    @media (max-width: 767px) {
+        .desktop-table { display: none !important; }
+        .mobile-cards { display: block !important; }
+    }
+    
+    @media (min-width: 768px) {
+        .desktop-table { display: block !important; }
+        .mobile-cards { display: none !important; }
+    }
+    
+    /* Mobile card styles */
+    .user-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .user-card-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .user-card-email {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 12px;
+        word-break: break-word;
+    }
+    
+    .user-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .user-card .btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+    }
+</style>
+
+<div class="header">
+    <h1>Admin Dashboard</h1>
+    <p>Estate Planning Application Management</p>
+</div>
+
+{{-- Stats Grid --}}
+<div class="stats-grid">
+    <div class="card">
+        <h3 style="color: #667eea; margin-bottom: 10px; font-size: 14px;">Total Users</h3>
+        <p style="font-size: 28px; font-weight: bold; color: #333;">{{ $stats['total_users'] }}</p>
     </div>
-
-    {{-- Statistics Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        {{-- Total Users --}}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">Total Users</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['total_users'] }}</p>
-                </div>
-                <div class="bg-purple-100 rounded-full p-3">
-                    <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Completed Intakes --}}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">Completed Intakes</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['completed_intakes'] }}</p>
-                </div>
-                <div class="bg-green-100 rounded-full p-3">
-                    <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Users with Uploads --}}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">Users with Documents</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['users_with_uploads'] }}</p>
-                </div>
-                <div class="bg-blue-100 rounded-full p-3">
-                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Pending Reviews --}}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">Pending Reviews</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['pending_reviews'] }}</p>
-                </div>
-                <div class="bg-yellow-100 rounded-full p-3">
-                    <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Uploads This Week --}}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">Uploads This Week</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['uploads_this_week'] }}</p>
-                </div>
-                <div class="bg-indigo-100 rounded-full p-3">
-                    <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                </div>
-            </div>
-        </div>
+    
+    <div class="card">
+        <h3 style="color: #28a745; margin-bottom: 10px; font-size: 14px;">Completed Intakes</h3>
+        <p style="font-size: 28px; font-weight: bold; color: #333;">{{ $stats['completed_intakes'] }}</p>
     </div>
-
-    {{-- Quick Actions --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <a href="{{ route('admin.users') }}" 
-           class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow-md p-6 hover:from-purple-700 hover:to-indigo-700 transition-all">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-semibold">Manage Users</h3>
-                    <p class="text-purple-100 text-sm mt-1">View and manage all clients</p>
-                </div>
-                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.uploads') }}" 
-           class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md p-6 hover:from-blue-700 hover:to-cyan-700 transition-all">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-semibold">Client Documents</h3>
-                    <p class="text-blue-100 text-sm mt-1">View all uploaded documents</p>
-                </div>
-                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.users', ['status' => 'in_progress']) }}" 
-           class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg shadow-md p-6 hover:from-yellow-600 hover:to-orange-600 transition-all">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-semibold">Pending Reviews</h3>
-                    <p class="text-yellow-100 text-sm mt-1">Cases requiring attention</p>
-                </div>
-                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </div>
-        </a>
+    
+    <div class="card">
+        <h3 style="color: #ffc107; margin-bottom: 10px; font-size: 14px;">Pending Intakes</h3>
+        <p style="font-size: 28px; font-weight: bold; color: #333;">{{ $stats['pending_intakes'] }}</p>
     </div>
+    
+    <div class="card">
+        <h3 style="color: #667eea; margin-bottom: 10px; font-size: 14px;">Uploaded Plans</h3>
+        <p style="font-size: 28px; font-weight: bold; color: #333;">{{ $stats['uploaded_plans'] }}</p>
+    </div>
+</div>
 
-    {{-- Recent Users Table --}}
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Recent Users</h2>
+<div class="card">
+    <h2 style="color: #667eea; margin-bottom: 20px;">Recent Users</h2>
+    
+    {{-- MOBILE: Cards --}}
+    <div class="mobile-cards" style="display: none;">
+        @foreach($recentUsers as $user)
+        <div class="user-card">
+            <div class="user-card-name">{{ $user->name }}</div>
+            <div class="user-card-email">{{ $user->email }}</div>
+            <div class="user-card-meta">
+                <div>
+                    <strong>Intake:</strong>
+                    @if($user->intakeSubmission && $user->intakeSubmission->is_completed)
+                        <span class="badge badge-success">Completed</span>
+                    @elseif($user->intakeSubmission)
+                        <span class="badge badge-warning">{{ $user->intakeSubmission->progress_percentage }}%</span>
+                    @else
+                        <span class="badge badge-danger">Not Started</span>
+                    @endif
+                </div>
+                <div><strong>Joined:</strong> {{ $user->created_at->format('M j, Y') }}</div>
+            </div>
+            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-primary">
+                View Details
+            </a>
         </div>
-
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        @endforeach
+    </div>
+    
+    {{-- DESKTOP: Table --}}
+    <div class="desktop-table" style="display: none;">
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Intake</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploads</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Intake Status</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($recentUsers as $user)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                    <div class="font-medium text-gray-900">{{ $user->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $user->email }}</div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $user->status_color }}">
-                                    {{ $user->status_name }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if($user->hasCompletedIntake())
-                                    <span class="text-green-600 font-medium">✓ Complete</span>
-                                @else
-                                    <span class="text-gray-400">Not started</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $user->upload_badge_color }}">
-                                    {{ $user->uploads->count() }} files
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $user->created_at->diffForHumans() }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('admin.users.show', $user) }}" 
-                                   class="text-purple-600 hover:text-purple-900">View Details</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                                No users registered yet
-                            </td>
-                        </tr>
-                    @endforelse
+                <tbody>
+                    @foreach($recentUsers as $user)
+                    <tr>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            @if($user->intakeSubmission && $user->intakeSubmission->is_completed)
+                                <span class="badge badge-success">Completed</span>
+                            @elseif($user->intakeSubmission)
+                                <span class="badge badge-warning">In Progress ({{ $user->intakeSubmission->progress_percentage }}%)</span>
+                            @else
+                                <span class="badge badge-danger">Not Started</span>
+                            @endif
+                        </td>
+                        <td>{{ $user->created_at->format('M j, Y') }}</td>
+                        <td>
+                            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
 @endsection

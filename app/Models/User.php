@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,133 +12,116 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
+        'first_name',
+        'last_name',
         'name',
         'email',
         'password',
-        'status',
-        'is_admin',
-        'intake_completed_at',
+        'role',
+        'is_active',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'intake_completed_at' => 'datetime',
-        'is_admin' => 'boolean',
         'password' => 'hashed',
+        'is_active' => 'boolean',
     ];
 
-    /**
-     * Available user statuses.
-     *
-     * @var array<string, string>
-     */
-    public static $statuses = [
-        'pending' => 'Pending',
-        'in_progress' => 'In Progress',
-        'documents_uploaded' => 'Documents Uploaded',
-        'plan_delivered' => 'Plan Delivered',
-        'completed' => 'Completed',
-    ];
-
-    /**
-     * Get the uploads for the user.
-     */
-    public function uploads()
+    // Accessor to get full name
+    public function getFullNameAttribute()
     {
-        return $this->hasMany(ClientUpload::class);
+        return trim("{$this->first_name} {$this->last_name}");
     }
 
-    /**
-     * Get the admin notes for the user.
-     */
-    public function adminNotes()
+    // Mutator to set name (for backwards compatibility)
+    public function setNameAttribute($value)
     {
-        return $this->hasMany(AdminNote::class);
+        $nameParts = explode(' ', $value, 2);
+        $this->attributes['first_name'] = $nameParts[0] ?? '';
+        $this->attributes['last_name'] = $nameParts[1] ?? '';
+        $this->attributes['name'] = $value;
     }
 
-    /**
-     * Get human-readable status name.
-     *
-     * @return string
-     */
-    public function getStatusNameAttribute()
+    // Relationships
+    public function intakeSubmission()
     {
-        return self::$statuses[$this->status] ?? 'Unknown';
+        return $this->hasOne(IntakeSubmission::class);
     }
 
-    /**
-     * Get status badge color class.
-     *
-     * @return string
-     */
-    public function getStatusColorAttribute()
+    public function intakePersonalInfo()
     {
-        return match($this->status) {
-            'pending' => 'bg-gray-100 text-gray-800',
-            'in_progress' => 'bg-yellow-100 text-yellow-800',
-            'documents_uploaded' => 'bg-blue-100 text-blue-800',
-            'plan_delivered' => 'bg-purple-100 text-purple-800',
-            'completed' => 'bg-green-100 text-green-800',
-            default => 'bg-gray-100 text-gray-800',
-        };
+        return $this->hasOne(IntakePersonalInfo::class);
     }
 
-    /**
-     * Get upload count badge color.
-     *
-     * @return string
-     */
-    public function getUploadBadgeColorAttribute()
+    public function intakeSpouseInfo()
     {
-        $count = $this->uploads()->count();
-        
-        if ($count === 0) {
-            return 'bg-gray-100 text-gray-800';
-        } elseif ($count <= 5) {
-            return 'bg-yellow-100 text-yellow-800';
-        } else {
-            return 'bg-green-100 text-green-800';
-        }
+        return $this->hasOne(IntakeSpouseInfo::class);
     }
 
-    /**
-     * Check if user has completed intake.
-     *
-     * @return bool
-     */
-    public function hasCompletedIntake()
+    public function intakeChildren()
     {
-        return !is_null($this->intake_completed_at);
+        return $this->hasMany(IntakeChild::class)->orderBy('sort_order');
     }
 
-    /**
-     * Check if user has uploaded documents.
-     *
-     * @return bool
-     */
-    public function hasUploads()
+    public function intakeAssets()
     {
-        return $this->uploads()->count() > 0;
+        return $this->hasMany(IntakeAsset::class)->orderBy('sort_order');
+    }
+
+    public function intakeLiabilities()
+    {
+        return $this->hasMany(IntakeLiability::class)->orderBy('sort_order');
+    }
+
+    public function intakeBeneficiaries()
+    {
+        return $this->hasMany(IntakeBeneficiary::class)->orderBy('sort_order');
+    }
+
+    public function intakeFiduciaries()
+    {
+        return $this->hasMany(IntakeFiduciary::class)->orderBy('sort_order');
+    }
+
+    public function intakeSpecificGifts()
+    {
+        return $this->hasMany(IntakeSpecificGift::class)->orderBy('sort_order');
+    }
+
+    public function intakeHealthcarePreferences()
+    {
+        return $this->hasOne(IntakeHealthcarePreferences::class);
+    }
+
+    public function intakeDistributionPreferences()
+    {
+        return $this->hasOne(IntakeDistributionPreferences::class);
+    }
+
+    public function estatePlans()
+    {
+        return $this->hasMany(EstatePlan::class);
+    }
+
+    public function uploadedPlans()
+    {
+        return $this->hasMany(EstatePlan::class, 'uploaded_by');
+    }
+
+    // Role helpers
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
     }
 }
