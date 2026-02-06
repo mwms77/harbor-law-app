@@ -62,10 +62,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Intake form
+    // Intake Form - Simplified
     Route::get('/intake', [IntakeController::class, 'show'])->name('intake.show');
     Route::post('/intake/save-all', [IntakeController::class, 'saveAll'])->name('intake.save-all');
     Route::post('/intake/submit-all', [IntakeController::class, 'submitAll'])->name('intake.submit-all');
-    Route::get('/intake/download', [IntakeController::class, 'download'])->name('intake.download');
     
     // Estate plan downloads
     Route::get('/estate-plans/{estatePlan}/download', [EstatePlanController::class, 'download'])->name('estate-plans.download');

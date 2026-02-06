@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use App\Models\IntakeSubmission;
 use App\Models\IntakePersonalInfo;
 use App\Models\IntakeSpouseInfo;
@@ -238,7 +237,6 @@ class IntakeController extends Controller
                 $submission->is_completed = true;
                 $submission->completed_at = now();
                 $submission->progress_percentage = 100;
-                $submission->status = 'submitted';
                 $submission->save();
             }
 
@@ -257,35 +255,5 @@ class IntakeController extends Controller
                 'message' => 'Error submitting form: ' . $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Download intake submission
-     */
-    public function download()
-    {
-        $user = Auth::user();
-        
-        // Get the user's most recent intake submission
-        $submission = IntakeSubmission::where('user_id', $user->id)
-            ->where('status', 'submitted')
-            ->latest()
-            ->first();
-        
-        if (!$submission) {
-            return redirect()->route('dashboard')
-                ->with('error', 'No intake submission found.');
-        }
-        
-        // Check if file exists
-        if (!$submission->file_path || !Storage::disk('private')->exists($submission->file_path)) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Intake file not found. Please contact support.');
-        }
-        
-        return Storage::disk('private')->download(
-            $submission->file_path,
-            'intake-submission-' . $submission->id . '.pdf'
-        );
     }
 }

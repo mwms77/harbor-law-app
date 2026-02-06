@@ -476,20 +476,20 @@ export default {
 
 ## DEPLOYMENT CHECKLIST
 
-1. ✓ Clone repository to your VPS
-2. ✓ Run `composer install --no-dev`
-3. ✓ Run `npm install && npm run build`
-4. ✓ Copy `.env.example` to `.env`
-5. ✓ Configure database credentials in `.env`
-6. ✓ Run `php artisan key:generate`
-7. ✓ Run `php artisan migrate`
-8. ✓ Run `php artisan db:seed`
-9. ✓ Run `php artisan storage:link`
-10. ✓ Set file permissions
-11. ✓ Configure Laravel Forge
-12. ✓ Install SSL certificate
-13. ✓ Change admin password
-14. ✓ Test application thoroughly
+1. âœ“ Clone repository to your VPS
+2. âœ“ Run `composer install --no-dev`
+3. âœ“ Run `npm install && npm run build`
+4. âœ“ Copy `.env.example` to `.env`
+5. âœ“ Configure database credentials in `.env`
+6. âœ“ Run `php artisan key:generate`
+7. âœ“ Run `php artisan migrate`
+8. âœ“ Run `php artisan db:seed`
+9. âœ“ Run `php artisan storage:link`
+10. âœ“ Set file permissions
+11. âœ“ Configure Laravel Forge
+12. âœ“ Install SSL certificate
+13. âœ“ Change admin password
+14. âœ“ Test application thoroughly
 
 ## SECURITY NOTES
 

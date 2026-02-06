@@ -575,7 +575,7 @@
             
             <!-- Personal Information -->
             <div class="review-box">
-                <h3>✓ Personal Information</h3>
+                <h3>âœ“ Personal Information</h3>
                 <p><strong>Name:</strong> <span x-text="`${formData.personal.first_name} ${formData.personal.last_name}`"></span></p>
                 <p><strong>Email:</strong> <span x-text="formData.personal.email"></span></p>
                 <p><strong>Phone:</strong> <span x-text="formData.personal.primary_phone"></span></p>
@@ -585,13 +585,13 @@
 
             <!-- Spouse -->
             <div x-show="formData.personal.marital_status === 'married' && formData.spouse.spouse_name" class="review-box">
-                <h3>✓ Spouse Information</h3>
+                <h3>âœ“ Spouse Information</h3>
                 <p><strong>Spouse:</strong> <span x-text="formData.spouse.spouse_name"></span></p>
             </div>
 
             <!-- Children -->
             <div x-show="formData.children.length > 0" class="review-box">
-                <h3>✓ Children</h3>
+                <h3>âœ“ Children</h3>
                 <p><span x-text="formData.children.length"></span> child(ren) listed</p>
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <template x-for="child in formData.children" :key="child.full_name">
@@ -602,7 +602,7 @@
 
             <!-- Assets -->
             <div x-show="formData.assets.length > 0" class="review-box">
-                <h3>✓ Assets</h3>
+                <h3>âœ“ Assets</h3>
                 <p><span x-text="formData.assets.length"></span> asset(s) listed</p>
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <template x-for="asset in formData.assets" :key="asset.description">
@@ -613,13 +613,13 @@
 
             <!-- Liabilities -->
             <div x-show="formData.liabilities.length > 0" class="review-box">
-                <h3>✓ Liabilities</h3>
+                <h3>âœ“ Liabilities</h3>
                 <p><span x-text="formData.liabilities.length"></span> liability(ies) listed</p>
             </div>
 
             <!-- Fiduciaries -->
             <div class="review-box">
-                <h3>✓ Fiduciaries & Decision Makers</h3>
+                <h3>âœ“ Fiduciaries & Decision Makers</h3>
                 
                 <div x-show="formData.fiduciaries.trustees.length > 0">
                     <p><strong>Trustee:</strong> <span x-text="formData.fiduciaries.trustees[0]?.full_name"></span></p>
@@ -645,33 +645,33 @@
 
             <!-- Pets -->
             <div x-show="formData.pets.has_pets && formData.pets.pets.length > 0" class="review-box">
-                <h3>✓ Pet Trust</h3>
+                <h3>âœ“ Pet Trust</h3>
                 <p><span x-text="formData.pets.pets.length"></span> pet(s) listed</p>
                 <p x-show="formData.pets.caretakers.length > 0"><strong>Caretaker:</strong> <span x-text="formData.pets.caretakers[0]?.name"></span></p>
                 <p x-show="formData.pets.funding_amount"><strong>Funding:</strong> $<span x-text="formData.pets.funding_amount"></span></p>
             </div>
 
             <div class="alert-success">
-                <strong>✓ Ready to submit!</strong> Click the Submit button below to complete your intake form.
+                <strong>âœ“ Ready to submit!</strong> Click the Submit button below to complete your intake form.
             </div>
         </div>
 
         <!-- Navigation Buttons -->
         <div class="navigation-buttons">
             <button type="button" @click="prevStep()" x-show="step > 1" class="btn btn-secondary">
-                ← Previous
+                â† Previous
             </button>
 
             <button type="button" @click="saveAndExit()" class="btn btn-outline">
-                💾 Save & Exit
+                ðŸ’¾ Save & Exit
             </button>
 
             <button type="button" @click="nextStep()" x-show="step < totalSteps" class="btn btn-primary">
-                Next →
+                Next â†’
             </button>
 
             <button type="button" @click="submit()" x-show="step === totalSteps" class="btn btn-success">
-                ✓ Submit Form
+                âœ“ Submit Form
             </button>
         </div>
 
@@ -1272,7 +1272,7 @@
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        alert('✓ Your intake form has been submitted successfully!');
+                        alert('âœ“ Your intake form has been submitted successfully!');
                         window.location.href = '{{ route('dashboard') }}';
                     }
                 })
