@@ -1,523 +1,349 @@
-# Estate Planning Application - Complete Deployment Package
+# Harbor Law Estate Planning App - Phase 1 Implementation Guide
 
-## REMAINING FILES TO CREATE
+## 📋 Overview
+This guide provides step-by-step instructions for implementing Phase 1 features:
+- ✅ Client Document Upload System
+- ✅ Email Notifications  
+- ✅ Enhanced Admin Dashboard
 
-Due to the comprehensive nature of this application, here are the remaining critical files you'll need to create. I'll provide detailed instructions and code samples for each.
+## 🚀 Pre-Deployment Checklist
 
-### 1. INTAKE FORM VIEW
-**File:** `resources/views/intake/form.blade.php`
+### Before Starting
+- [ ] Backup your current database
+- [ ] Backup your current codebase
+- [ ] Ensure you have SSH access to your VPS
+- [ ] Verify Forge deployment is working
+- [ ] Test current application is functioning
 
-This file should contain the entire intake form from your uploaded HTML. The key modifications needed:
+## 📦 Step 1: Upload Files via GitHub Web Interface
 
-1. Wrap the form in the Blade layout:
-```blade
-@extends('layouts.app')
-@section('content')
-<!-- Your HTML form content here -->
-@endsection
-```
+Since you upload code through GitHub's web interface, follow this process:
 
-2. Add CSRF protection to the form:
-```html
-<form id="intakeForm">
-    @csrf
-    <!-- rest of form -->
-</form>
-```
+### A. Create Feature Branch on GitHub
+1. Go to https://github.com/mwms77/harbor-law-app
+2. Click on "main" branch dropdown
+3. Type "feature/phase-1-implementation" in the search box
+4. Click "Create branch: feature/phase-1-implementation from main"
 
-3. Modify the JavaScript submission functions to use Laravel routes:
-```javascript
-// Replace the submitToHarborLaw function with:
-function submitForm() {
-    const formData = new FormData(document.getElementById('intakeForm'));
-    const data = {};
-    
-    for (let [key, value] of formData.entries()) {
-        data[key] = value;
-    }
-    
-    // Get checkboxes
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-        data[cb.name] = cb.checked;
-    });
-    
-    fetch('{{ route('intake.submit') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ form_data: data })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = data.redirect;
-        }
-    });
-}
+### B. Upload Files to GitHub
 
-// Add auto-save functionality every 30 seconds:
-setInterval(() => {
-    const formData = new FormData(document.getElementById('intakeForm'));
-    const data = {};
-    
-    for (let [key, value] of formData.entries()) {
-        data[key] = value;
-    }
-    
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-        data[cb.name] = cb.checked;
-    });
-    
-    fetch('{{ route('intake.save') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-            form_data: data,
-            current_section: currentSection,
-            progress_percentage: Math.round((currentSection / 12) * 100)
-        })
-    });
-}, 30000); // Every 30 seconds
+Upload files in this specific order to avoid breaking changes:
 
-// Load existing data on page load:
-window.addEventListener('load', function() {
-    const savedData = @json($submission->form_data ?? []);
-    
-    Object.keys(savedData).forEach(key => {
-        const field = document.querySelector(`[name="${key}"]`);
-        if (field) {
-            if (field.type === 'checkbox') {
-                field.checked = savedData[key];
-            } else {
-                field.value = savedData[key];
-            }
-        }
-    });
-});
-```
+**FIRST - Configuration Files:**
+1. Upload `config/uploads.php` to `config/` directory
+2. Upload `.env.example` (for reference only, don't replace your actual .env)
 
-### 2. ADMIN VIEWS
+**SECOND - Database Migrations:**
+3. Upload all 3 migration files to `database/migrations/`:
+   - `2024_02_06_000001_create_client_uploads_table.php`
+   - `2024_02_06_000002_add_status_to_users_table.php`
+   - `2024_02_06_000003_create_admin_notes_table.php`
 
-#### File: `resources/views/admin/dashboard.blade.php`
-```blade
-@extends('layouts.app')
+**THIRD - Models:**
+4. Upload to `app/Models/`:
+   - `ClientUpload.php`
+   - `AdminNote.php`
+   - `User.php` (REPLACE existing file)
 
-@section('title', 'Admin Dashboard')
+**FOURTH - Notifications:**
+5. Upload all 4 notification files to `app/Notifications/`:
+   - `ClientDocumentUploadedNotification.php`
+   - `AdminDocumentUploadedNotification.php`
+   - `IntakeCompletedNotification.php`
+   - `EstatePlanReadyNotification.php`
 
-@section('content')
-<div class="header">
-    <h1>Admin Dashboard</h1>
-    <p>Estate Planning Application Management</p>
-</div>
+**FIFTH - Controllers:**
+6. Upload to `app/Http/Controllers/`:
+   - `ClientUploadController.php`
+   - `AdminController.php` (REPLACE existing file)
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
-    <div class="card">
-        <h3 style="color: #667eea; margin-bottom: 10px;">Total Users</h3>
-        <p style="font-size: 36px; font-weight: bold; color: #333;">{{ $stats['total_users'] }}</p>
-    </div>
-    
-    <div class="card">
-        <h3 style="color: #28a745; margin-bottom: 10px;">Completed Intakes</h3>
-        <p style="font-size: 36px; font-weight: bold; color: #333;">{{ $stats['completed_intakes'] }}</p>
-    </div>
-    
-    <div class="card">
-        <h3 style="color: #ffc107; margin-bottom: 10px;">Pending Intakes</h3>
-        <p style="font-size: 36px; font-weight: bold; color: #333;">{{ $stats['pending_intakes'] }}</p>
-    </div>
-    
-    <div class="card">
-        <h3 style="color: #667eea; margin-bottom: 10px;">Uploaded Plans</h3>
-        <p style="font-size: 36px; font-weight: bold; color: #333;">{{ $stats['uploaded_plans'] }}</p>
-    </div>
-</div>
+**SIXTH - Service Provider:**
+7. Upload `app/Providers/AuthServiceProvider.php` (REPLACE existing file)
 
-<div class="card">
-    <h2 style="color: #667eea; margin-bottom: 20px;">Recent Users</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Intake Status</th>
-                <th>Registered</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($recentUsers as $user)
-            <tr>
-                <td>{{ $user->name }}</td>
-                <td>{{ $user->email }}</td>
-                <td>
-                    @if($user->intakeSubmission && $user->intakeSubmission->is_completed)
-                        <span class="badge badge-success">Completed</span>
-                    @elseif($user->intakeSubmission)
-                        <span class="badge badge-warning">In Progress ({{ $user->intakeSubmission->progress_percentage }}%)</span>
-                    @else
-                        <span class="badge badge-danger">Not Started</span>
-                    @endif
-                </td>
-                <td>{{ $user->created_at->format('M j, Y') }}</td>
-                <td>
-                    <a href="{{ route('admin.users.show', $user) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">
-                        View Details
-                    </a>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endsection
-```
+**SEVENTH - Routes:**
+8. Upload `routes/web.php` (REPLACE existing file)
 
-#### File: `resources/views/admin/users/index.blade.php`
-```blade
-@extends('layouts.app')
+**EIGHTH - Client Views:**
+9. Upload to `resources/views/client/`:
+   - `uploads.blade.php`
 
-@section('title', 'Manage Users')
+**NINTH - Admin Views:**
+10. Upload to `resources/views/admin/`:
+    - `dashboard.blade.php` (REPLACE existing file)
+    - `users.blade.php` (REPLACE existing file)
+    - `user-detail.blade.php`
+    - `client-uploads.blade.php`
+    - `user-uploads.blade.php`
 
-@section('content')
-<div class="header">
-    <h1>User Management</h1>
-    <p>View and manage all registered users</p>
-</div>
+### C. Create Pull Request and Merge
+1. Go to "Pull Requests" tab on GitHub
+2. Click "New Pull Request"
+3. Set base: `main` and compare: `feature/phase-1-implementation`
+4. Click "Create Pull Request"
+5. Review the changes
+6. Click "Merge Pull Request"
+7. Click "Confirm Merge"
 
-<div class="card">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Intake Status</th>
-                <th>Estate Plans</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($users as $user)
-            <tr>
-                <td>{{ $user->name }}</td>
-                <td>{{ $user->email }}</td>
-                <td>
-                    @if($user->intakeSubmission && $user->intakeSubmission->is_completed)
-                        <span class="badge badge-success">Completed</span>
-                    @elseif($user->intakeSubmission)
-                        <span class="badge badge-warning">{{ $user->intakeSubmission->progress_percentage }}%</span>
-                    @else
-                        <span class="badge badge-danger">Not Started</span>
-                    @endif
-                </td>
-                <td>{{ $user->estatePlans->count() }}</td>
-                <td>
-                    @if($user->is_active)
-                        <span class="badge badge-success">Active</span>
-                    @else
-                        <span class="badge badge-danger">Inactive</span>
-                    @endif
-                </td>
-                <td>
-                    <a href="{{ route('admin.users.show', $user) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">
-                        Manage
-                    </a>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    
-    <div style="margin-top: 20px;">
-        {{ $users->links() }}
-    </div>
-</div>
-@endsection
-```
+**This will trigger automatic deployment via Forge!**
 
-#### File: `resources/views/admin/users/show.blade.php`
-```blade
-@extends('layouts.app')
+## 🗄️ Step 2: Run Database Migrations
 
-@section('title', 'User Details - ' . $user->name)
+### Via Forge Dashboard
+1. Log into Laravel Forge: https://forge.laravel.com
+2. Navigate to your server and site
+3. Click "Sites" → Click your site name
+4. Scroll to "Quick Commands"
+5. In the command input, type: `php artisan migrate --force`
+6. Click "Run Command"
+7. Verify success in command output
 
-@section('content')
-<div class="header">
-    <h1>{{ $user->name }}</h1>
-    <p>{{ $user->email }}</p>
-</div>
-
-<div class="card">
-    <h2 style="color: #667eea; margin-bottom: 20px;">User Information</h2>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-        <div>
-            <strong>Registered:</strong> {{ $user->created_at->format('F j, Y') }}
-        </div>
-        <div>
-            <strong>Status:</strong>
-            @if($user->is_active)
-                <span class="badge badge-success">Active</span>
-            @else
-                <span class="badge badge-danger">Inactive</span>
-            @endif
-        </div>
-    </div>
-    
-    <form action="{{ route('admin.users.toggle-status', $user) }}" method="POST" style="display: inline;">
-        @csrf
-        <button type="submit" class="btn btn-secondary">
-            {{ $user->is_active ? 'Deactivate User' : 'Activate User' }}
-        </button>
-    </form>
-</div>
-
-<div class="card">
-    <h2 style="color: #667eea; margin-bottom: 20px;">Intake Form</h2>
-    
-    @if($user->intakeSubmission && $user->intakeSubmission->is_completed)
-        <div class="alert alert-success">
-            Completed on {{ $user->intakeSubmission->completed_at->format('F j, Y') }}
-        </div>
-        
-        <a href="{{ route('admin.users.download-intake', $user) }}" class="btn btn-primary">
-            Download Intake Data (JSON)
-        </a>
-    @elseif($user->intakeSubmission)
-        <div class="alert alert-warning">
-            In Progress: {{ $user->intakeSubmission->progress_percentage }}% complete
-        </div>
-    @else
-        <p>User has not started the intake form.</p>
-    @endif
-</div>
-
-<div class="card">
-    <h2 style="color: #667eea; margin-bottom: 20px;">Estate Plan Documents</h2>
-    
-    <form action="{{ route('admin.users.upload-plan', $user) }}" method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
-        @csrf
-        
-        <div class="form-group">
-            <label for="file">Upload Estate Plan (PDF)</label>
-            <input type="file" id="file" name="file" accept=".pdf" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="notes">Notes (Optional)</label>
-            <textarea id="notes" name="notes" rows="3" placeholder="Add any notes about this document..."></textarea>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Upload Document</button>
-    </form>
-    
-    @if($user->estatePlans->count() > 0)
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Document</th>
-                    <th>Size</th>
-                    <th>Uploaded</th>
-                    <th>Notes</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($user->estatePlans as $plan)
-                <tr>
-                    <td>{{ $plan->original_filename }}</td>
-                    <td>{{ $plan->getFileSizeFormatted() }}</td>
-                    <td>{{ $plan->created_at->format('M j, Y') }}</td>
-                    <td>{{ $plan->notes ?? '-' }}</td>
-                    <td>
-                        <a href="{{ route('estate-plans.download', $plan) }}" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;">
-                            Download
-                        </a>
-                        <form action="{{ route('admin.users.delete-plan', [$user, $plan]) }}" method="POST" style="display: inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Are you sure?')">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @else
-        <p>No documents uploaded yet.</p>
-    @endif
-</div>
-@endsection
-```
-
-#### File: `resources/views/admin/settings.blade.php`
-```blade
-@extends('layouts.app')
-
-@section('title', 'Settings')
-
-@section('content')
-<div class="header">
-    <h1>Application Settings</h1>
-    <p>Configure your estate planning application</p>
-</div>
-
-<div class="card">
-    <h2 style="color: #667eea; margin-bottom: 20px;">Company Logo</h2>
-    
-    @if($logo)
-        <div style="margin-bottom: 20px;">
-            <img src="{{ Storage::url($logo) }}" alt="Company Logo" style="max-width: 300px; border: 1px solid #e0e0e0; padding: 10px; border-radius: 6px;">
-        </div>
-        
-        <form action="{{ route('admin.settings.delete-logo') }}" method="POST" style="display: inline;">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the logo?')">
-                Delete Logo
-            </button>
-        </form>
-    @else
-        <p style="color: #666; margin-bottom: 20px;">No logo uploaded</p>
-    @endif
-    
-    <form action="{{ route('admin.settings.upload-logo') }}" method="POST" enctype="multipart/form-data" style="margin-top: 30px;">
-        @csrf
-        
-        <div class="form-group">
-            <label for="logo">Upload New Logo</label>
-            <input type="file" id="logo" name="logo" accept="image/*" required>
-            <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
-                Recommended size: 300x100px. Formats: PNG, JPG, SVG
-            </small>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Upload Logo</button>
-    </form>
-</div>
-@endsection
-```
-
-### 3. LARAVEL CONFIGURATION FILES
-
-#### File: `app/Http/Kernel.php`
-Add the admin middleware to the route middleware array:
-
-```php
-protected $routeMiddleware = [
-    // ... existing middleware
-    'admin' => \App\Http\Middleware\AdminMiddleware::class,
-];
-```
-
-#### File: `app/Providers/RouteServiceProvider.php`
-Set the home path:
-
-```php
-public const HOME = '/dashboard';
-```
-
-### 4. ADDITIONAL CONFIGURATION
-
-#### Create storage directories:
+### Via SSH (Alternative)
 ```bash
-mkdir -p storage/app/private/intakes
-mkdir -p storage/app/private/estate-plans
-mkdir -p storage/app/public/logos
+cd /home/forge/app.harbor.law
+php artisan migrate --force
 ```
 
-#### Set proper permissions:
+Expected output:
+```
+Migrating: 2024_02_06_000001_create_client_uploads_table
+Migrated:  2024_02_06_000001_create_client_uploads_table (XX.XXms)
+Migrating: 2024_02_06_000002_add_status_to_users_table
+Migrated:  2024_02_06_000002_add_status_to_users_table (XX.XXms)
+Migrating: 2024_02_06_000003_create_admin_notes_table
+Migrated:  2024_02_06_000003_create_admin_notes_table (XX.XXms)
+```
+
+## ⚙️ Step 3: Update Environment Variables
+
+### Via Forge Dashboard
+1. In Forge, go to your site
+2. Click "Environment" in the left sidebar
+3. Add these new variables to your `.env` file:
+
+```env
+# File Upload Settings
+UPLOAD_MAX_SIZE=10240
+UPLOAD_ALLOWED_MIMES=pdf,jpg,jpeg,png,heic
+UPLOAD_DISK=local
+
+# Admin Email (if not already set)
+ADMIN_EMAIL=matt@harbor.law
+```
+
+4. Click "Save" at the bottom
+
+### Via SSH (Alternative)
 ```bash
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
+cd /home/forge/app.harbor.law
+nano .env
+# Add the variables above
+# Press CTRL+X, then Y, then ENTER to save
 ```
 
-### 5. VITE CONFIGURATION
+## 🔧 Step 4: Clear Caches
 
-#### File: `vite.config.js`
-```javascript
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
-        }),
-    ],
-});
-```
-
-### 6. TAILWIND CONFIGURATION (Optional, already using inline styles)
-
-#### File: `tailwind.config.js`
-```javascript
-export default {
-    content: [
-        "./resources/**/*.blade.php",
-        "./resources/**/*.js",
-    ],
-    theme: {
-        extend: {},
-    },
-    plugins: [],
-}
-```
-
-## DEPLOYMENT CHECKLIST
-
-1. ✓ Clone repository to your VPS
-2. ✓ Run `composer install --no-dev`
-3. ✓ Run `npm install && npm run build`
-4. ✓ Copy `.env.example` to `.env`
-5. ✓ Configure database credentials in `.env`
-6. ✓ Run `php artisan key:generate`
-7. ✓ Run `php artisan migrate`
-8. ✓ Run `php artisan db:seed`
-9. ✓ Run `php artisan storage:link`
-10. ✓ Set file permissions
-11. ✓ Configure Laravel Forge
-12. ✓ Install SSL certificate
-13. ✓ Change admin password
-14. ✓ Test application thoroughly
-
-## SECURITY NOTES
-
-1. Always use HTTPS in production
-2. Change the default admin password immediately
-3. Set `APP_DEBUG=false` in production
-4. Keep Laravel and dependencies updated
-5. Regularly backup database and files
-6. Monitor application logs
-7. Use strong passwords for all accounts
-8. Consider implementing 2FA for admin accounts
-
-## BACKUP STRATEGY
-
-Set up automated backups in Laravel Forge or create a cron job:
-
+### Via Forge Quick Commands
+Run each command one at a time:
 ```bash
-# Daily backup at 2 AM
-0 2 * * * cd /home/forge/yourdomain.com && php artisan backup:run
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
 
-## SUPPORT
+### Via SSH (Alternative)
+```bash
+cd /home/forge/app.harbor.law
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
 
-For assistance, refer to:
-- Laravel Documentation: https://laravel.com/docs
-- Laravel Forge Documentation: https://forge.laravel.com/docs
-- This README file
+## 📧 Step 5: Queue Worker Setup
+
+Ensure the queue worker is running to process email notifications.
+
+### Via Forge
+1. Go to "Daemons" in the left sidebar
+2. If you don't see a queue worker, click "New Daemon"
+3. Configure:
+   - **Command**: `php artisan queue:work --sleep=3 --tries=3`
+   - **Directory**: `/home/forge/app.harbor.law`
+   - **User**: `forge`
+4. Click "Create Daemon"
+
+### Restart Queue Worker (Important!)
+After deployment, always restart the queue worker:
+
+Via Forge:
+1. Go to "Daemons"
+2. Find your queue worker
+3. Click "Restart"
+
+Via SSH:
+```bash
+php artisan queue:restart
+```
+
+## 🔐 Step 6: Set File Permissions
+
+### Via SSH
+```bash
+cd /home/forge/app.harbor.law
+sudo chmod -R 775 storage
+sudo chmod -R 775 bootstrap/cache
+sudo chown -R forge:forge storage
+sudo chown -R forge:forge bootstrap/cache
+```
+
+## ✅ Step 7: Verification Testing
+
+### Test 1: Check Application Loads
+1. Visit: https://app.harbor.law
+2. Verify no errors on homepage
+3. Log in as admin (matt@harbor.law)
+4. Verify admin dashboard shows statistics
+
+### Test 2: Client Document Upload
+1. Log in as a test client (or create one)
+2. Navigate to "My Documents" or "Uploads" menu
+3. Select a category
+4. Upload a test PDF file (< 10MB)
+5. Verify success message appears
+6. Verify file appears in the uploaded documents list
+
+### Test 3: Admin Upload Management
+1. Log in as admin
+2. Go to Admin Dashboard
+3. Verify statistics are displaying
+4. Click "Client Documents"
+5. Verify you can see the uploaded test file
+6. Try downloading the file
+7. Verify download works
+
+### Test 4: Email Notifications
+1. Check your email (matt@harbor.law) for upload notification
+2. If using Mailtrap in development, check Mailtrap inbox
+3. Verify email formatting looks professional
+
+### Test 5: Admin Notes
+1. Log in as admin
+2. Go to a user's detail page
+3. Add a test note
+4. Verify note appears in the sidebar
+5. Try deleting the note
+
+### Test 6: Status Updates
+1. On user detail page
+2. Change user status dropdown
+3. Verify status updates successfully
+4. Verify status badge changes color
+
+## 🚨 Troubleshooting
+
+### Issue: Migration Fails
+**Error**: Table already exists
+**Solution**:
+```bash
+php artisan migrate:status  # Check which migrations ran
+# If needed, manually drop the table and re-run
+```
+
+### Issue: File Upload Returns 500 Error
+**Check**:
+1. Storage directory permissions: `ls -la storage/`
+2. PHP upload limits in `php.ini`:
+   - `upload_max_filesize = 20M`
+   - `post_max_size = 20M`
+3. Nginx client_max_body_size: Should be 20M+
+
+### Issue: Emails Not Sending
+**Check**:
+1. Queue worker is running: `ps aux | grep queue`
+2. Failed jobs table: `SELECT * FROM failed_jobs;`
+3. Laravel logs: `tail -f storage/logs/laravel.log`
+4. SES credentials are correct in .env
+
+### Issue: Authorization Errors
+**Check**:
+1. AuthServiceProvider is registered in `config/app.php`
+2. Clear config cache: `php artisan config:cache`
+3. Check user has correct `is_admin` value in database
+
+### Issue: 404 on New Routes
+**Solution**:
+```bash
+php artisan route:cache
+php artisan config:cache
+```
+
+## 📊 Post-Deployment Checklist
+
+After successful deployment:
+
+- [ ] Homepage loads without errors
+- [ ] Admin can log in
+- [ ] Admin dashboard shows statistics
+- [ ] Client can upload files
+- [ ] Client receives email confirmation
+- [ ] Admin receives upload notification
+- [ ] Admin can view all uploads
+- [ ] Admin can download files
+- [ ] Admin can add notes to users
+- [ ] Admin can update user status
+- [ ] ZIP download works for bulk downloads
+- [ ] File deletion works (with confirmation)
+- [ ] All emails are formatted correctly
+
+## 🔄 Rollback Procedure (If Needed)
+
+If something goes critically wrong:
+
+### Via GitHub
+1. Go to your repository
+2. Find the commit before the merge
+3. Click "Revert" on that commit
+4. This will create a new commit that undoes the changes
+5. Forge will auto-deploy the rollback
+
+### Via SSH
+```bash
+cd /home/forge/app.harbor.law
+git log --oneline  # Find the commit hash before merge
+git reset --hard COMMIT_HASH
+git push -f origin main  # Forces push (use with caution!)
+```
+
+### Database Rollback
+```bash
+php artisan migrate:rollback --step=3
+```
+
+## 📞 Support
+
+If you encounter issues:
+
+1. Check Laravel logs: `storage/logs/laravel.log`
+2. Check Forge deployment logs
+3. Check server error logs via Forge
+4. Review this guide's troubleshooting section
+
+## 🎯 Next Steps After Successful Deployment
+
+1. **Test with Real Clients**: Have 2-3 clients test the upload feature
+2. **Monitor Email Delivery**: Check SES dashboard for bounce/complaint rates
+3. **Monitor Disk Space**: Watch storage folder growth
+4. **Review Admin Workflow**: Ensure admin dashboard meets your needs
+5. **Plan Phase 2**: Begin planning messaging system or document templates
+
+## 📝 Notes
+
+- All uploaded files are stored in `storage/app/private/client-uploads/`
+- Files are NOT publicly accessible via URL
+- Users can only download their own files
+- Admin can download all files
+- Soft deletes are enabled for users and uploads
+- Email notifications are queued for background processing
 
 ---
 
-**IMPORTANT:** The intake form view needs to be created by copying your uploaded HTML file and making the modifications described in section #1 above.
+**Congratulations!** You've successfully implemented Phase 1 of the Harbor Law Estate Planning App! 🎉
