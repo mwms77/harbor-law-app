@@ -329,6 +329,7 @@
             @else
                 <a href="{{ route('dashboard') }}">Dashboard</a>
                 <a href="{{ route('intake.show') }}">Intake Form</a>
+                <a href="{{ route('important-contacts.index') }}">Important Contacts</a>
                 <a href="{{ route('uploads.index') }}">Upload Documents</a>
             @endif
         </div>

@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\EstatePlanController;
 use App\Http\Controllers\ClientUploadController;
+use App\Http\Controllers\ImportantContactController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
@@ -88,4 +89,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/uploads', [ClientUploadController::class, 'index'])->name('uploads.index');
     Route::post('/uploads', [ClientUploadController::class, 'store'])->name('uploads.store');
     Route::get('/uploads/{upload}/download', [ClientUploadController::class, 'download'])->name('uploads.download');
+
+    // Important Contacts
+    Route::get('/important-contacts', [ImportantContactController::class, 'index'])->name('important-contacts.index');
+    Route::get('/important-contacts/create', [ImportantContactController::class, 'create'])->name('important-contacts.create');
+    Route::post('/important-contacts', [ImportantContactController::class, 'store'])->name('important-contacts.store');
+    Route::post('/important-contacts/import', [ImportantContactController::class, 'importFromIntake'])->name('important-contacts.import');
+    Route::get('/important-contacts/pdf', [ImportantContactController::class, 'downloadPdf'])->name('important-contacts.pdf');
+    Route::get('/important-contacts/{contact}/edit', [ImportantContactController::class, 'edit'])->name('important-contacts.edit');
+    Route::put('/important-contacts/{contact}', [ImportantContactController::class, 'update'])->name('important-contacts.update');
 });

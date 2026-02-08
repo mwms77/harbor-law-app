@@ -126,6 +126,11 @@ class User extends Authenticatable
         return $this->hasMany(AdminNote::class);
     }
 
+    public function importantContacts()
+    {
+        return $this->hasMany(ImportantContact::class)->orderBy('sort_order')->orderBy('role_type');
+    }
+
     // Role helpers
     public function isAdmin(): bool
     {
