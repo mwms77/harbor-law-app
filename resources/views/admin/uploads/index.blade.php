@@ -1,115 +1,150 @@
-@extends('layouts.admin')
+@extends('layouts.app')
+
+@section('title', 'Client Document Uploads')
 
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-semibold text-gray-900">Client Document Uploads</h1>
-            <p class="mt-1 text-sm text-gray-600">Manage and review all client-uploaded documents</p>
-        </div>
 
-        @if(session('success'))
-            <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-                {{ session('success') }}
+<style>
+    @media (max-width: 1023px) {
+        .desktop-table { display: none !important; }
+        .mobile-cards { display: block !important; }
+    }
+    
+    @media (min-width: 1024px) {
+        .desktop-table { display: block !important; }
+        .mobile-cards { display: none !important; }
+    }
+    
+    .upload-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .upload-card-name { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 4px; }
+    .upload-card-meta { font-size: 13px; color: #666; margin-bottom: 12px; }
+    .upload-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+
+<div class="header">
+    <h1>Client Document Uploads</h1>
+    <p>Manage and review all client-uploaded documents</p>
+</div>
+
+@if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+<div class="card">
+    <h2 style="color: #667eea; margin-bottom: 20px;">Filter Uploads</h2>
+    <form method="GET" action="{{ route('admin.uploads') }}" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+            <label>Search by client name or email</label>
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search...">
+        </div>
+        <div class="form-group" style="min-width: 180px; margin-bottom: 0;">
+            <label>Category</label>
+            <select name="category">
+                <option value="">All Categories</option>
+                @foreach($categories as $key => $label)
+                    <option value="{{ $key }}" {{ request('category') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ route('admin.uploads') }}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2 style="color: #667eea; margin-bottom: 20px;">All Uploads</h2>
+    
+    @if($uploads->isEmpty())
+        <div style="text-align: center; padding: 40px; color: #666;">
+            <p style="margin-bottom: 10px;">No uploads found.</p>
+            <p style="font-size: 14px;">No documents match your current filters.</p>
+        </div>
+    @else
+        {{-- MOBILE: Cards --}}
+        <div class="mobile-cards" style="display: none;">
+            @foreach($uploads as $upload)
+            <div class="upload-card">
+                <div class="upload-card-name">
+                    <a href="{{ route('admin.users.show', $upload->user) }}" style="color: #667eea; text-decoration: none;">{{ $upload->user->full_name }}</a>
+                </div>
+                <div class="upload-card-meta">{{ $upload->user->email }}</div>
+                <div class="upload-card-meta">
+                    <strong>{{ $upload->original_name }}</strong><br>
+                    <span class="badge" style="background: #e3e8ef; color: #4a5568; padding: 3px 8px; border-radius: 4px; font-size: 12px;">{{ $upload->category_name }}</span>
+                    <span style="margin-left: 8px;">{{ $upload->formatted_size }}</span>
+                    <span style="margin-left: 8px;">{{ $upload->created_at->format('M j, Y') }}</span>
+                </div>
+                <div class="upload-card-actions">
+                    <a href="{{ route('admin.uploads.download', $upload) }}" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">Download</a>
+                    <form action="{{ route('admin.uploads.delete', $upload) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger" style="padding: 8px 16px; font-size: 13px;">Delete</button>
+                    </form>
+                    <a href="{{ route('admin.users.show', $upload->user) }}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">View User</a>
+                </div>
             </div>
-        @endif
-
-        <!-- Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <form method="GET" action="{{ route('admin.uploads') }}" class="flex flex-wrap gap-4">
-                <div class="flex-1 min-w-[200px]">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by client name or email..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                </div>
-                <div class="min-w-[180px]">
-                    <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
-                        <option value="">All Categories</option>
-                        @foreach($categories as $key => $label)
-                            <option value="{{ $key }}" {{ request('category') === $key ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex gap-2">
-                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-                        Filter
-                    </button>
-                    <a href="{{ route('admin.uploads') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                        Clear
-                    </a>
-                </div>
-            </form>
+            @endforeach
         </div>
 
-        <!-- Uploads Table -->
-        <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-            @if($uploads->isEmpty())
-                <div class="text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No uploads found</h3>
-                    <p class="mt-1 text-sm text-gray-500">No documents match your current filters.</p>
-                </div>
-            @else
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+        {{-- DESKTOP: Table --}}
+        <div class="desktop-table" style="display: none;">
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th>Client</th>
+                            <th>File Name</th>
+                            <th>Category</th>
+                            <th>Size</th>
+                            <th>Uploaded</th>
+                            <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody>
                         @foreach($uploads as $upload)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div>
-                                            <div class="text-sm font-medium text-gray-900">
-                                                <a href="{{ route('admin.users.show', $upload->user) }}" class="hover:text-purple-600">
-                                                    {{ $upload->user->full_name }}
-                                                </a>
-                                            </div>
-                                            <div class="text-sm text-gray-500">{{ $upload->user->email }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ $upload->original_name }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        {{ $upload->category_name }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $upload->formatted_size }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $upload->created_at->format('M j, Y g:i A') }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('admin.uploads.download', $upload) }}" class="text-purple-600 hover:text-purple-900 mr-3">Download</a>
-                                    <form action="{{ route('admin.uploads.delete', $upload) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this file?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td>
+                                <a href="{{ route('admin.users.show', $upload->user) }}" style="color: #667eea; font-weight: 600;">{{ $upload->user->full_name }}</a>
+                                <div style="font-size: 12px; color: #666;">{{ $upload->user->email }}</div>
+                            </td>
+                            <td>{{ $upload->original_name }}</td>
+                            <td>
+                                <span class="badge" style="background: #e3e8ef; color: #4a5568; padding: 4px 8px; border-radius: 4px; font-size: 12px;">{{ $upload->category_name }}</span>
+                            </td>
+                            <td>{{ $upload->formatted_size }}</td>
+                            <td>{{ $upload->created_at->format('M j, Y g:i A') }}</td>
+                            <td style="text-align: center;">
+                                <a href="{{ route('admin.uploads.download', $upload) }}" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px; margin-right: 5px;">Download</a>
+                                <form action="{{ route('admin.uploads.delete', $upload) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
-
-                <!-- Pagination -->
-                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                    {{ $uploads->links() }}
-                </div>
-            @endif
+            </div>
         </div>
-    </div>
+
+        <div style="margin-top: 20px;">
+            {{ $uploads->links() }}
+        </div>
+    @endif
 </div>
+
 @endsection
