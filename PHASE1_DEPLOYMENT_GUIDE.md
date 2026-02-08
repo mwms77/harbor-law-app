@@ -29,16 +29,16 @@ QUEUE_CONNECTION=database
 ```
 
 ### 3. Email Configuration
-Verify your Amazon SES credentials are configured in `.env`:
+The app uses [Resend](https://resend.com) for email. Verify your `.env` has:
 
 ```env
-MAIL_MAILER=ses
+MAIL_MAILER=resend
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxx
 MAIL_FROM_ADDRESS=noreply@harbor.law
 MAIL_FROM_NAME="Harbor Law"
-AWS_ACCESS_KEY_ID=your_ses_key
-AWS_SECRET_ACCESS_KEY=your_ses_secret
-AWS_DEFAULT_REGION=us-east-1
 ```
+
+See `RESEND_SETUP.md` for full setup. To use SES or SMTP instead, set `MAIL_MAILER` to `ses` or `smtp` and the corresponding env vars (no code changes needed).
 
 ## Deployment Steps
 
