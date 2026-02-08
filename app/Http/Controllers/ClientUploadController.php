@@ -44,15 +44,15 @@ class ClientUploadController extends Controller
             'files.*' => [
                 'required',
                 'file',
-                'max:' . config('filesystems.upload_max_size', 10240),
-                'mimes:' . config('filesystems.upload_allowed_mimes', 'pdf,jpg,jpeg,png,heic')
+                'max:' . config('uploads.max_size', 10240),
+                'mimes:' . config('uploads.allowed_mimes', 'pdf,jpg,jpeg,png,heic')
             ],
             'category' => [
                 'required',
                 'in:id_documents,property_documents,financial_documents,beneficiary_information,health_care_directives,other'
             ]
         ], [
-            'files.*.max' => 'Each file must not exceed ' . (config('filesystems.upload_max_size', 10240) / 1024) . 'MB.',
+            'files.*.max' => 'Each file must not exceed ' . (config('uploads.max_size', 10240) / 1024) . 'MB.',
             'files.*.mimes' => 'Only PDF, JPG, PNG, and HEIC files are allowed.',
         ]);
 
@@ -94,7 +94,7 @@ class ClientUploadController extends Controller
             $user->notify(new ClientDocumentUploadedNotification($uploadedFiles));
             
             // Notify admin
-            $adminEmail = config('mail.admin_email', 'matt@harbor.law');
+            $adminEmail = config('app.admin_email', 'matt@harbor.law');
             $admin = User::where('email', $adminEmail)->first();
             if ($admin) {
                 $admin->notify(new AdminDocumentUploadedNotification($user, $uploadedFiles));

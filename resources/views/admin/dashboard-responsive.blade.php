@@ -119,7 +119,7 @@
                 </div>
                 <div class="bg-gray-50 px-5 py-3">
                     <div class="text-sm">
-                        <a href="{{ route('admin.documents.index') }}" class="font-medium text-purple-600 hover:text-purple-500">
+                        <a href="{{ route('admin.uploads') }}" class="font-medium text-purple-600 hover:text-purple-500">
                             View all
                         </a>
                     </div>
@@ -153,7 +153,7 @@
                 </div>
                 <div class="bg-gray-50 px-5 py-3">
                     <div class="text-sm">
-                        <a href="{{ route('admin.intake.index') }}" class="font-medium text-yellow-600 hover:text-yellow-500">
+                        <a href="{{ route('admin.users.index') }}" class="font-medium text-yellow-600 hover:text-yellow-500">
                             View all
                         </a>
                     </div>
@@ -253,7 +253,7 @@
                     @endif
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:px-6">
-                    <a href="{{ route('admin.documents.index') }}" 
+                    <a href="{{ route('admin.uploads') }}" 
                        class="text-sm font-medium text-purple-600 hover:text-purple-500">
                         View all documents →
                     </a>

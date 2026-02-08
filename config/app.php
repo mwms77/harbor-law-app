@@ -12,6 +12,16 @@ return [
     'faker_locale' => 'en_US',
     'key' => env('APP_KEY'),
     'cipher' => 'AES-256-CBC',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Email
+    |--------------------------------------------------------------------------
+    |
+    | Email address for admin notifications (intake completion, document uploads).
+    |
+    */
+    'admin_email' => env('ADMIN_EMAIL', 'matt@harbor.law'),
     
     'providers' => [
         // Laravel Framework Service Providers

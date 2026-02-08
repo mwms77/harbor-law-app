@@ -304,16 +304,16 @@
                     </div>
                 </div>
                 
-                {{-- Intake Submissions Section --}}
-                @if($user->intakeSubmissions->count() > 0)
+                {{-- Intake Submission Section --}}
+                @if($user->intakeSubmission)
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="px-4 py-5 sm:p-6">
                         <h2 class="text-lg font-semibold text-gray-900 mb-6">
-                            Intake Submissions
+                            Intake Submission
                         </h2>
                         
                         <div class="space-y-3">
-                            @foreach($user->intakeSubmissions as $submission)
+                            @foreach(collect([$user->intakeSubmission]) as $submission)
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition">
                                 <div class="mb-2 sm:mb-0">
                                     <p class="text-sm font-medium text-gray-900">
@@ -323,7 +323,7 @@
                                         {{ $submission->created_at->format('M d, Y \a\t g:i A') }}
                                     </p>
                                 </div>
-                                <a href="{{ route('admin.intake.show', $submission) }}" 
+                                <a href="{{ route('admin.users.download-intake', $user) }}" 
                                    class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 w-full sm:w-auto">
                                     View Details
                                 </a>

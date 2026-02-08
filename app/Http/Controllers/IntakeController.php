@@ -249,7 +249,7 @@ class IntakeController extends Controller
 
                 // PHASE 1: Send notification to admin
                 try {
-                    $adminEmail = config('mail.admin_email', 'matt@harbor.law');
+                    $adminEmail = config('app.admin_email', 'matt@harbor.law');
                     $admin = User::where('email', $adminEmail)->first();
                     if ($admin) {
                         $admin->notify(new IntakeCompletedNotification($user, $submission));

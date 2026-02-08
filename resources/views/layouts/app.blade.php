@@ -280,11 +280,13 @@
             @if(auth()->user()->isAdmin())
                 <a href="{{ route('admin.dashboard') }}">Dashboard</a>
                 <a href="{{ route('admin.users.index') }}">Users</a>
+                <a href="{{ route('admin.uploads') }}">Client Uploads</a>
                 <a href="{{ route('admin.settings') }}">Settings</a>
                 <a href="{{ route('admin.profile.edit') }}">My Profile</a>
             @else
                 <a href="{{ route('dashboard') }}">Dashboard</a>
                 <a href="{{ route('intake.show') }}">Intake Form</a>
+                <a href="{{ route('uploads.index') }}">Upload Documents</a>
             @endif
         </div>
         <div>
