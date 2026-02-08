@@ -1,6 +1,5 @@
 @php 
 use Illuminate\Support\Facades\Storage; 
-use Illuminate\Support\Facades\Auth;
 @endphp
 @extends('layouts.app')
 
@@ -27,14 +26,14 @@ use Illuminate\Support\Facades\Auth;
         <div class="form-row">
             <div class="form-group">
                 <label for="first_name">First Name</label>
-                <input type="text" id="first_name" name="first_name" value="{{ old('first_name', Auth::user()->first_name) }}" required>
+                <input type="text" id="first_name" name="first_name" value="{{ old('first_name', auth()->user()->first_name) }}" required>
                 @error('first_name')
                     <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
                 @enderror
             </div>
             <div class="form-group">
                 <label for="last_name">Last Name</label>
-                <input type="text" id="last_name" name="last_name" value="{{ old('last_name', Auth::user()->last_name) }}" required>
+                <input type="text" id="last_name" name="last_name" value="{{ old('last_name', auth()->user()->last_name) }}" required>
                 @error('last_name')
                     <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
                 @enderror
@@ -43,7 +42,7 @@ use Illuminate\Support\Facades\Auth;
 
         <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" value="{{ old('email', Auth::user()->email) }}" required>
+            <input type="email" id="email" name="email" value="{{ old('email', auth()->user()->email) }}" required>
             @error('email')
                 <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
             @enderror

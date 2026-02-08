@@ -88,6 +88,7 @@
     </form>
     
     @if($user->estatePlans->count() > 0)
+        <div class="table-wrapper">
         <table class="table">
             <thead>
                 <tr>
@@ -143,6 +144,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     @else
         <p>No documents uploaded yet.</p>
     @endif

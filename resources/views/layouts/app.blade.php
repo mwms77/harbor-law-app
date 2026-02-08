@@ -150,6 +150,19 @@
             border-color: #667eea;
         }
 
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 20px;
+        }
+
         .nav {
             background: white;
             padding: 15px 30px;
@@ -256,13 +269,43 @@
                 padding: 20px;
             }
 
+            .card-hero {
+                margin: 20px auto !important;
+            }
+
             .header h1 {
                 font-size: 22px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
             }
 
             .nav {
                 flex-direction: column;
                 gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-links a {
+                padding: 8px 4px;
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .nav > div:last-child {
+                text-align: center;
+                word-break: break-word;
+            }
+
+            .nav .btn {
+                min-height: 44px;
+                padding: 12px 20px;
             }
 
             .table {

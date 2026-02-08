@@ -3,7 +3,7 @@
 @section('title', 'Login - Estate Planning')
 
 @section('content')
-<div class="card" style="max-width: 500px; margin: 100px auto;">
+<div class="card card-hero" style="max-width: 500px; margin: 100px auto;">
     <div class="header">
         <h1>Login</h1>
         <p>Access your estate planning account</p>

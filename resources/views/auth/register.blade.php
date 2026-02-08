@@ -3,7 +3,7 @@
 @section('title', 'Register - Estate Planning')
 
 @section('content')
-<div class="card" style="max-width: 500px; margin: 100px auto;">
+<div class="card card-hero" style="max-width: 500px; margin: 100px auto;">
     <div class="header">
         <h1>Create Account</h1>
         <p>Start your estate planning journey</p>
@@ -12,7 +12,7 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-row">
             <div class="form-group">
                 <label for="first_name">First Name</label>
                 <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required autofocus>
